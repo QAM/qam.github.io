@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Corintis: Advanced Cooling Technology for AI Hardware — Deep Research Report</title>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --panel: #0f172a;
+      --ink: #e5e7eb;
+      --muted: #a3a3a3;
+      --accent: #7c3aed;
+      --accent-2: #22d3ee;
+      --hr: #1f2937;
+      --card: #0b1222;
+      --card-ink: #e2e8f0;
+      --good: #34d399;
+      --warn: #f59e0b;
+      --bad: #f87171;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      line-height: 1.65; }
+    a { color: #a78bfa; }
+    .container { max-width: 1060px; margin: 48px auto; padding: 0 24px; }
+    header.hero {
+      background: radial-gradient(1200px 500px at 20% -10%, rgba(124,58,237,.25), transparent),
+                  radial-gradient(1200px 500px at 85% -20%, rgba(34,211,238,.20), transparent);
+      padding: 42px 28px; border-radius: 24px; position: relative; overflow: hidden;
+      border: 1px solid var(--hr);
+    }
+    .pill {
+      display: inline-block; padding: 6px 12px; border-radius: 999px;
+      background: rgba(124,58,237,.12); color: #d8b4fe; border: 1px solid rgba(124,58,237,.35);
+      font-weight: 600; letter-spacing: .02em; margin-bottom: 10px;
+    }
+    header.hero h1 { margin: 0 0 8px; font-size: clamp(28px, 5vw, 44px); letter-spacing: -0.02em; }
+    header.hero p.meta { margin: 0; color: var(--muted); }
+    .btnbar { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+    .btn {
+      display: inline-block; padding: 10px 14px; border-radius: 10px; text-decoration: none; font-weight: 600;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      color: #0a0f1f; border: 0;
+    }
+    .btn.secondary { background: transparent; color: #c4b5fd; border: 1px solid #4338ca; }
+    .toc { background: var(--panel); border: 1px solid var(--hr); border-radius: 16px;
+           padding: 18px 20px; margin: 28px 0 36px; }
+    .toc h3 { margin: 0 0 10px; font-size: 14px; color: var(--muted); text-transform: uppercase; letter-spacing: .12em; }
+    .toc ol { margin: 0; padding-left: 20px; }
+    .toc a { color: #a78bfa; text-decoration: none; }
+    .toc a:hover { text-decoration: underline; }
+    section.card {
+      background: var(--card); color: var(--card-ink);
+      border: 1px solid var(--hr); border-radius: 18px; padding: 24px 24px;
+      margin: 18px 0 28px; box-shadow: 0 10px 30px rgba(0,0,0,.25);
+    }
+    section.card h2 { margin-top: 0; font-size: 26px; letter-spacing: -0.01em;
+      background: linear-gradient(90deg, #e2e8f0, #a7f3d0);
+      -webkit-background-clip: text; background-clip: text; color: transparent; }
+    h3 { margin: 16px 0 6px; font-size: 18px; color: #e5e7eb; }
+    p { margin: 8px 0 12px; }
+    ul, ol { margin: 6px 0 14px 20px; }
+    li { margin: 6px 0; }
+    .grid { display: grid; gap: 16px; }
+    .grid.cols-2 { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .grid.cols-3 { grid-template-columns: repeat(3, minmax(0,1fr)); }
+    .callout {
+      border-left: 3px solid var(--accent-2);
+      background: rgba(34,211,238,.07);
+      padding: 12px 14px; border-radius: 8px; color: #ccfbf1;
+      margin: 12px 0 18px;
+    }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; }
+    th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--hr); vertical-align: top; }
+    th { color: #cbd5e1; font-weight: 700; }
+    .badge { display: inline-block; padding: 2px 8px; border: 1px solid var(--hr); border-radius: 999px; font-size: 12px; color: var(--muted); }
+    .pros li::marker { color: var(--good); }
+    .cons li::marker { color: var(--bad); }
+    .note { color: var(--muted); font-size: 13px; }
+    .anchor::before { content: ""; display: block; height: 84px; margin-top: -84px; visibility: hidden; }
+    footer { color: var(--muted); text-align: center; margin: 40px 0 10px; }
+    @media (max-width: 860px) { .grid.cols-2, .grid.cols-3 { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="hero">
+      <span class="pill">Deep Research</span>
+      <h1>Corintis: Advanced Cooling Technology for AI Hardware — Deep Research Report</h1>
+      <p class="meta">Prepared: October 06, 2025</p>
+      <div class="btnbar">
+        <a class="btn" href="#" onclick="window.print();return false;">Print / Save PDF</a>
+        <a class="btn secondary" href="#toc">Jump to Contents</a>
+      </div>
+    </header>
+
+    <nav id="toc" class="toc">
+      <h3>Contents</h3>
+      <ol>
+        <li><a href="#overview">1. Company Overview — Status, Team, Strategy</a></li>
+        <li><a href="#tech">2. Technology & Advantages</a></li>
+        <li><a href="#partners">3. Partnerships & Alliances</a></li>
+        <li><a href="#competition">4. Competitive Landscape</a></li>
+        <li><a href="#us-entry">5. U.S. Market Entry — Opportunities & Risks</a></li>
+        <li><a href="#gtm">6. Commercialization & Go‑to‑Market</a></li>
+        <li><a href="#regulatory">7. Regulatory & Standards (U.S.)</a></li>
+        <li><a href="#bottomline">Bottom Line</a></li>
+      </ol>
+    </nav>
+
+    <section id="overview" class="card anchor">
+      <h2>1) Company Overview — Status, Team, Strategy</h2>
+      <p><strong>Status & Funding.</strong> Corintis (Lausanne, Switzerland) spun out of EPFL in 2022 and emerged from stealth in 2025. It announced a $24M Series A (Sep 2025) led by BlueYard, with Founderful, Acequia, Celsius Industries, XTX Ventures; total funding ≈ $33.4M+. Earlier seed: CHF 3.85M (2022). Recognition includes #1 Swiss Startup (2025) and strong industry board participation (e.g., Lip‑Bu Tan, Geoff Lyon).</p>
+      <p><strong>Team.</strong> Co‑founders: Dr. Remco van Erp (CEO), Sam Harrison (COO); scientific advisor Prof. Elison Matioli (EPFL). Headcount ≈ 55 (50+ in‑house experts), with hiring toward 70+ by end‑2025 across thermal, packaging, and chip co‑design disciplines.</p>
+      <p><strong>Footprint.</strong> HQ in Switzerland; expansion to multiple U.S. offices and a Munich engineering hub for EU talent and OEM proximity.</p>
+      <div class="callout"><strong>Trajectory.</strong> 10k+ cooling systems shipped pre‑Series A (8‑figure revenue). Scaling to &gt;1M microfluidic units/year by 2026. Mission: “10× better cooling to unlock 100× compute.”</div>
+    </section>
+
+    <section id="tech" class="card anchor">
+      <h2>2) Technology & Advantages</h2>
+      <h3>Microfluidic “in‑chip” / co‑packaged cooling</h3>
+      <p>Coolant flows through <em>micro‑channels</em> etched in silicon or a bonded layer, bringing liquid directly under hotspots, eliminating thermal interfaces and large temperature deltas vs. traditional cold plates.</p>
+      <h3>AI‑optimized hot‑spot targeting</h3>
+      <p><em>Glacierware</em> software co‑designs channel networks to each chip’s power map (bio‑inspired “vein” topologies), allocating flow where it matters; paired with rapid thermal emulation (“Therminator”).</p>
+      <h3>Measured / reported benefits</h3>
+      <ul class="pros">
+        <li><strong>Up to 3×</strong> heat removal vs. best cold plates in prototypes; GPU peak silicon temperature reduced by ~<strong>65%</strong>.</li>
+        <li><strong>Higher sustained clocks</strong> / reduced thermal throttling; overclocking headroom under bursty workloads.</li>
+        <li><strong>Lower pressure drop</strong> → less pump energy; efficient flow distribution (no over‑cooling of cool regions).</li>
+        <li><strong>Warm‑water operation</strong> (e.g., 40–45 °C inlets; ~70 °C outlets): less chiller energy, easier heat reuse.</li>
+        <li>Potentially **orders‑of‑magnitude** improvement in cooling energy efficiency vs. legacy baselines.</li>
+      </ul>
+      <h3>Manufacturability</h3>
+      <p>Fine‑feature copper/silicon structures at scale; sealed cap designs; rapid iteration proven with hyperscaler R&amp;D (multiple prototype cycles in under a year).</p>
+    </section>
+
+    <section id="partners" class="card anchor">
+      <h2>3) Partnerships & Alliances</h2>
+      <ul>
+        <li><strong>Microsoft.</strong> Joint R&amp;D on in‑chip microfluidics; public validation of 3× improvement vs. cold plates; exploration for future first‑party chips; working with silicon/fab partners.</li>
+        <li><strong>EPFL.</strong> Origin lab (PowerLab), Innogrant support, ongoing research/talent pipeline.</li>
+        <li><strong>Manufacturing &amp; Packaging.</strong> Engagement with foundry/OSAT partners to enable co‑packaged cooling at scale.</li>
+        <li><strong>Customers.</strong> Several major U.S. tech giants reportedly in pipeline/NDAs; board connections to cooling incumbents (CoolIT) and chip ecosystem (Lip‑Bu Tan).</li>
+      </ul>
+    </section>
+
+    <section id="competition" class="card anchor">
+      <h2>4) Competitive Landscape</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Company (HQ)</th>
+            <th>Approach</th>
+            <th>Highlights</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Corintis</strong> (CH)</td>
+            <td>Microfluidic in‑chip / tailored cold plates</td>
+            <td>AI‑designed channel networks; up to 3× thermal vs. cold plates; warm‑water; co‑packaged roadmap.</td>
+          </tr>
+          <tr>
+            <td>JetCool (US)</td>
+            <td>Micro‑jet impingement plates; embedded “SmartSilicon” in dev</td>
+            <td>Targets hotspots via micro‑nozzles; roadmap claims 3–5 kW per device in future embedded variants.</td>
+          </tr>
+          <tr>
+            <td>ZutaCore (IL/US)</td>
+            <td>Two‑phase on‑chip (dielectric evaporative)</td>
+            <td>Very high heat flux &gt;2 kW per chip; reduced flow; no water; closed‑loop condenser.</td>
+          </tr>
+          <tr>
+            <td>Accelsius (US)</td>
+            <td>Two‑phase vaporator plates (Bell Labs)</td>
+            <td>&gt;4.5 kW per device; high‑density racks (~250 kW/rack); demos with Equinix.</td>
+          </tr>
+          <tr>
+            <td>CoolIT (CA)</td>
+            <td>Direct‑to‑chip water cold plates</td>
+            <td>Incumbent; standardized and reliable at scale; less granular hotspot targeting.</td>
+          </tr>
+          <tr>
+            <td>Asetek (DK)</td>
+            <td>Direct‑to‑chip water cold plates</td>
+            <td>OEM integrations; pump/plate modules; rear‑door HX ecosystems.</td>
+          </tr>
+          <tr>
+            <td>GRC (US)</td>
+            <td>Single‑phase immersion tanks</td>
+            <td>Retrofit‑friendly; cools whole systems efficiently; infra changes required.</td>
+          </tr>
+          <tr>
+            <td>LiquidStack (US/HK)</td>
+            <td>Two‑phase immersion (boiling/condensing)</td>
+            <td>Very low cooling energy; high density; proprietary fluids and sealed tanks.</td>
+          </tr>
+          <tr>
+            <td>Submer / Asperitas / Iceotope (EU)</td>
+            <td>Immersion / chassis‑level precision immersion</td>
+            <td>Sustainability focus (biodegradable dielectrics, passive convection), form‑factor options.</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="grid cols-2">
+        <div>
+          <h3>Corintis Advantages</h3>
+          <ul class="pros">
+            <li>Chip‑specific cooling; removes thermal bottlenecks for higher sustained performance.</li>
+            <li>Works with existing liquid infrastructure; drop‑in path for near‑term wins.</li>
+            <li>Enables warm‑water operation and heat reuse; lower cooling energy.</li>
+            <li>Strong hyperscaler validation; IP/design‑software moat.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Key Challenges</h3>
+          <ul class="cons">
+            <li>Market trust for “liquid inside package”; must prove reliability at scale.</li>
+            <li>Incumbent cold‑plate vendors and two‑phase rivals vying for the same budgets.</li>
+            <li>Manufacturing scale‑up with tight quality control.</li>
+            <li>Two‑level GTM (end‑user retrofit vs. chip/OEM integration) coordination.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="us-entry" class="card anchor">
+      <h2>5) U.S. Market Entry — Opportunities & Risks</h2>
+      <h3>Priority segments</h3>
+      <ul>
+        <li><strong>Hyperscalers:</strong> Azure (beachhead), AWS, GCP, Meta, Oracle — scale, custom silicon, ESG commitments.</li>
+        <li><strong>Chipmakers:</strong> NVIDIA, AMD, Intel; AI ASIC startups (Graphcore, Cerebras, SambaNova).</li>
+        <li><strong>OEMs &amp; Integrators:</strong> HPE, Dell, Supermicro, Vertiv, Schneider — channels and reference designs.</li>
+        <li><strong>HPC &amp; Labs:</strong> DOE labs, universities — early adopter pilots, flagship deployments.</li>
+        <li><strong>Enterprise/Edge:</strong> selective high‑density installs; partner‑led approach.</li>
+      </ul>
+      <h3>Value props for U.S. buyers</h3>
+      <ul>
+        <li>Higher performance per socket/rack (less throttling, potential overclocking).</li>
+        <li>Lower cooling energy (warm water; reduced chiller/pump power); heat‑reuse pathways.</li>
+        <li>Drop‑in adoption with existing loops; future co‑packaged path for maximal gains.</li>
+      </ul>
+      <h3>Risk radar</h3>
+      <ul class="cons">
+        <li>Reliability perception (leaks/clogs) — mitigated by sealed designs, pilots, warranties, telemetry.</li>
+        <li>Competitive bids from U.S. rivals — emphasize performance + TCO + sustainability wins.</li>
+        <li>Scale logistics — NA manufacturing/assembly partners; QA/validation regimes.</li>
+        <li>Cost/TCO proof — model $/perf and energy savings vs. immersion or conventional plates.</li>
+      </ul>
+    </section>
+
+    <section id="gtm" class="card anchor">
+      <h2>6) Commercialization & Go‑to‑Market</h2>
+      <h3>Offerings</h3>
+      <ul>
+        <li><strong>Drop‑in microfluidic cold plates:</strong> tailored to specific CPUs/GPUs; plug into standard manifolds; thousands shipped.</li>
+        <li><strong>Co‑packaged cooling:</strong> collaborate with chip/fab partners; design IP via Glacierware; validate with Therminator.</li>
+        <li><strong>Design services &amp; software:</strong> thermal co‑design engagements; potential software licensing model.</li>
+      </ul>
+      <h3>Business model & scale</h3>
+      <ul>
+        <li>Product sales (retrofits, new builds) + Joint Development Agreements + future IP licensing/royalties.</li>
+        <li>Manufacturing roadmap: &gt;1M units/year by 2026; consider U.S./EU contract mfg for volume and locality.</li>
+      </ul>
+      <h3>Execution checklist</h3>
+      <ul>
+        <li>Secure 1–2 additional flagship U.S. design wins (hyperscaler, OEM, or leading chipmaker).</li>
+        <li>Publish reliability data (MTBF, pressure/thermal cycling, leak‑before‑burst testing).</li>
+        <li>Standardize modules for OCP ecosystems; certify (UL/ETL); document installation SOPs.</li>
+      </ul>
+    </section>
+
+    <section id="regulatory" class="card anchor">
+      <h2>7) Regulatory & Standards (U.S.)</h2>
+      <ul>
+        <li><strong>Safety/Standards:</strong> UL/ETL safety; ASHRAE TC 9.9 liquid guidelines; OCP liquid interop (quick‑connects, W‑classes).</li>
+        <li><strong>Environment:</strong> Align with water/energy mandates (e.g., CA regional reporting; preference for dry‑cooling). Warm‑water return enables chiller‑free operation and heat reuse.</li>
+        <li><strong>Policy:</strong> Potential CHIPS/DOE/ARPA‑E collaboration; compliance with CFIUS/ITAR if gov’t work; IP defensibility.</li>
+      </ul>
+      <p class="note">Note: Regulations focus on outcomes (safety, energy, water) rather than cooling method. Corintis’s approach generally supports compliance trends.</p>
+    </section>
+
+    <section id="bottomline" class="card anchor">
+      <h2>Bottom Line</h2>
+      <p>Corintis’s microfluidic cooling removes a critical barrier to scaling AI chips. With strong prototype results (up to 3× vs. cold plates), a practical drop‑in path today, and a co‑packaged roadmap for tomorrow, the company is well positioned. U.S. success depends on reliability proof at scale, rapid manufacturing ramp, and 1–2 additional marquee design wins.</p>
+    </section>
+
+    <footer>
+      © 2025 Deep Research Report — formatted by your assistant.
+    </footer>
+  </div>
+</body>
+</html>
