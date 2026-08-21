@@ -166,63 +166,168 @@
         /* ---------- shooting range ---------- */
         .hud {
             display: flex; justify-content: space-between; align-items: center;
-            gap: .8rem; flex-wrap: wrap; margin-bottom: .6rem; font-weight: 700;
+            gap: .5rem; flex-wrap: wrap; margin-bottom: .6rem; font-weight: 800;
             font-variant-numeric: tabular-nums;
         }
-        .hud .clock { font-size: 1.3rem; }
+        .hud .chip {
+            display: inline-flex; align-items: center; gap: .35rem;
+            padding: .25rem .7rem; border-radius: 999px;
+            background: #12212f; color: #fff; border: 2px solid #0a1520;
+            box-shadow: inset 0 -2px 0 rgba(0,0,0,.35);
+        }
+        .hud .chip.mid { flex: 1; justify-content: center; background: #1c3346; }
+        .hud .clock { font-size: 1.15rem; }
         .hud .combo { color: var(--g-gold); }
 
+        /* ---------- the sky ---------- */
         #field {
             position: relative; height: clamp(20rem, 52vh, 34rem); overflow: hidden;
             border: 2px solid var(--border); border-radius: 14px;
-            background: linear-gradient(#bfe3ff, #eaf6ff);
+            background: linear-gradient(#0f6ea3 0%, #1b8cc4 40%, #35a8d8 100%);
+            isolation: isolate;
         }
         @media (prefers-color-scheme: dark) {
-            :root:not([data-theme="light"]) #field { background: linear-gradient(#101a33, #1b2544); }
+            :root:not([data-theme="light"]) #field { background: linear-gradient(#071a33, #0d2b4a 45%, #12405f); }
         }
-        :root[data-theme="dark"] #field { background: linear-gradient(#101a33, #1b2544); }
-        #field .ground {
-            position: absolute; left: 0; right: 0; bottom: 0; height: 2.2rem;
-            background: rgba(46,184,114,.35); border-top: 2px solid var(--g-green);
+        :root[data-theme="dark"] #field { background: linear-gradient(#071a33, #0d2b4a 45%, #12405f); }
+
+        /* islands drawn as stacked gradients, so the tile is seamless and needs no asset */
+        #field .terrain, #field .clouds {
+            position: absolute; inset: -10% 0 -10% 0; pointer-events: none; z-index: 0;
         }
+        #field .terrain {
+            background-image:
+                /* dark canopy dots, then the island body, then a sand rim */
+                radial-gradient(ellipse 2.6% 1.6% at 15% 12%, #1d6b39 0 60%, transparent 62%),
+                radial-gradient(ellipse 2.2% 1.4% at 20% 15%, #1d6b39 0 60%, transparent 62%),
+                radial-gradient(ellipse 11% 5.5% at 17% 13%, #2f9a52 0 78%, #e8d9a8 80%, transparent 84%),
+                radial-gradient(ellipse 2.4% 1.5% at 79% 33%, #1d6b39 0 60%, transparent 62%),
+                radial-gradient(ellipse 8% 4% at 82% 34%, #2f9a52 0 78%, #e8d9a8 80%, transparent 84%),
+                radial-gradient(ellipse 5% 2.6% at 45% 24%, #2f9a52 0 78%, #e8d9a8 80%, transparent 84%),
+                radial-gradient(ellipse 2.5% 1.6% at 33% 58%, #1d6b39 0 60%, transparent 62%),
+                radial-gradient(ellipse 10% 5% at 31% 57%, #2f9a52 0 78%, #e8d9a8 80%, transparent 84%),
+                radial-gradient(ellipse 6% 3% at 68% 68%, #2f9a52 0 78%, #e8d9a8 80%, transparent 84%),
+                radial-gradient(ellipse 3.5% 2% at 88% 82%, #2f9a52 0 78%, #e8d9a8 80%, transparent 84%),
+                radial-gradient(ellipse 13% 6% at 55% 90%, #2f9a52 0 78%, #e8d9a8 80%, transparent 84%),
+                /* shallows around the bigger islands */
+                radial-gradient(ellipse 15% 7.5% at 17% 13%, #63c9e0 0 90%, transparent 93%),
+                radial-gradient(ellipse 17% 8% at 55% 90%, #63c9e0 0 90%, transparent 93%),
+                radial-gradient(ellipse 13% 6.5% at 31% 57%, #63c9e0 0 90%, transparent 93%);
+            background-size: 100% 70%;
+            background-repeat: repeat-y;
+            animation: scroll-terrain 30s linear infinite;
+        }
+        #field .clouds {
+            background-image:
+                radial-gradient(ellipse 15% 6% at 25% 14%, rgba(255,255,255,.92) 0 60%, transparent 64%),
+                radial-gradient(ellipse 10% 4% at 33% 17%, rgba(255,255,255,.85) 0 60%, transparent 64%),
+                radial-gradient(ellipse 18% 7% at 78% 38%, rgba(255,255,255,.9) 0 60%, transparent 64%),
+                radial-gradient(ellipse 12% 5% at 12% 62%, rgba(255,255,255,.85) 0 60%, transparent 64%),
+                radial-gradient(ellipse 16% 6% at 62% 80%, rgba(255,255,255,.9) 0 60%, transparent 64%);
+            background-size: 100% 48%;
+            background-repeat: repeat-y;
+            animation: scroll-clouds 11s linear infinite;
+            z-index: 1;
+        }
+        :root[data-theme="dark"] #field .clouds,
+        :root:not([data-theme="light"]) #field .clouds { opacity: .38; }
+
+        @keyframes scroll-terrain { to { background-position-y: 70%; } }
+        @keyframes scroll-clouds  { to { background-position-y: 48%; } }
+
+        /* ---------- aircraft ---------- */
         .target {
-            position: absolute; transform: translate(-50%, -50%);
-            display: flex; align-items: center; justify-content: center;
-            width: 6.2rem; height: 4.4rem; border-radius: 50%;
-            background: var(--g-red); color: #fff; border: 3px solid #fff;
-            font-size: 1.45rem; font-weight: 800; font-variant-numeric: tabular-nums;
-            box-shadow: 0 3px 10px rgba(0,0,0,.28); white-space: nowrap;
+            position: absolute; z-index: 3;
+            transform: translate(-50%, -50%);
+            width: 6.4rem; height: 6.4rem;
             cursor: pointer; user-select: none;
         }
-        .target.hurt { animation: shake .3s ease; background: #b23f36; }
+        .target.option { width: 8.4rem; height: 8rem; }
+        .target.option .craft { height: 5.8rem; }
+        .target.option .label { font-size: 1.5rem; padding: .18rem .7rem; gap: .4rem; }
+        .target.option .pick { width: 1.9rem; height: 1.9rem; font-size: 1.15rem; }
+        .target.option:hover, .target.option:focus-visible {
+            transform: translate(-50%, -50%) scale(1.08); outline: none; z-index: 4;
+        }
+        .target.option:hover .label { border-color: var(--g-gold); }
+        .target.option:active { transform: translate(-50%, -50%) scale(.96); }
+        /* only the numbered options are meant to be clicked */
+        .target:not(.option) { cursor: default; }
+
+        .target .craft {
+            position: absolute; left: 0; right: 0; top: 0; height: 4.6rem;
+            filter: drop-shadow(0 3px 5px rgba(0,0,0,.45));
+        }
+        .target .craft svg { width: 100%; height: 100%; }
+
+        .target .label {
+            position: absolute; left: 50%; bottom: 0;
+            transform: translateX(-50%);
+            display: flex; align-items: center; gap: .28rem;
+            padding: .12rem .45rem; border-radius: 8px;
+            background: #12212f; color: #fff; border: 2px solid rgba(255,255,255,.9);
+            font-size: 1.05rem; font-weight: 800; font-variant-numeric: tabular-nums;
+            white-space: nowrap; letter-spacing: .01em;
+            box-shadow: 0 2px 5px rgba(0,0,0,.45);
+        }
+        .target .pick {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 1.3rem; height: 1.3rem; border-radius: 50%; flex: none;
+            background: var(--g-gold); color: #3a2300; font-size: .88rem; font-weight: 800;
+        }
+        /* out of play, still finishing its death animation */
+        .target.dying { pointer-events: none; }
+        .target.dying .label { opacity: .45; }
+
+        .target.hurt { animation: shake .3s ease; }
         @keyframes shake { 25% { transform: translate(-54%, -50%); } 75% { transform: translate(-46%, -50%); } }
+        .target.gone { animation: gone .35s ease forwards; pointer-events: none; }
+        @keyframes gone { to { opacity: 0; transform: translate(-50%, -50%) scale(.4); } }
+
+        /* your plane, parked at the bottom */
+        #player {
+            position: absolute; left: 50%; bottom: .35rem; z-index: 3;
+            width: 6rem; height: 5rem; transform: translateX(-50%);
+            pointer-events: none;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,.4));
+            animation: hover 2.6s ease-in-out infinite;
+        }
+        #player svg { width: 100%; height: 100%; }
+        @keyframes hover { 50% { transform: translateX(-50%) translateY(-5px); } }
+
+        .bullet {
+            position: absolute; z-index: 4; width: .5rem; height: 1.4rem; border-radius: .25rem;
+            background: linear-gradient(#fff59d, #ffb300);
+            box-shadow: 0 0 8px rgba(255,193,7,.9);
+            transform: translate(-50%, -50%); pointer-events: none;
+        }
+
         .boom {
-            position: absolute; transform: translate(-50%, -50%);
+            position: absolute; z-index: 5; transform: translate(-50%, -50%);
             font-size: 3rem; animation: boom .55s ease forwards; pointer-events: none;
         }
         @keyframes boom { from { opacity: 1; transform: translate(-50%,-50%) scale(.5); }
                           to   { opacity: 0; transform: translate(-50%,-50%) scale(1.9); } }
         .flyscore {
-            position: absolute; transform: translate(-50%, -50%);
-            font-weight: 800; font-size: 1.3rem; color: var(--g-gold);
-            text-shadow: 0 1px 3px rgba(0,0,0,.4);
+            position: absolute; z-index: 5; transform: translate(-50%, -50%);
+            font-weight: 800; font-size: 1.3rem; color: #fff;
+            text-shadow: 0 2px 4px rgba(0,0,0,.75);
             animation: fly .9s ease forwards; pointer-events: none;
         }
         @keyframes fly { from { opacity: 1; } to { opacity: 0; transform: translate(-50%,-190%); } }
 
-        .ask {
-            text-align: center; font-size: clamp(1.8rem, 6vw, 2.6rem); font-weight: 800;
-            font-variant-numeric: tabular-nums; margin: .2rem 0 .6rem; letter-spacing: .02em;
+        @media (prefers-reduced-motion: reduce) {
+            #field .terrain, #field .clouds, #player { animation: none; }
         }
 
-        .target.option { width: 5.6rem; height: 4.2rem; gap: .4rem; }
-        .target .pick {
-            display: inline-flex; align-items: center; justify-content: center;
-            width: 1.5rem; height: 1.5rem; border-radius: 50%; flex: none;
-            background: #fff; color: var(--g-red); font-size: .95rem; font-weight: 800;
+        .ask {
+            display: block; text-align: center; margin: .2rem auto .7rem;
+            padding: .3rem 1.4rem; border-radius: 999px; width: fit-content;
+            background: #12212f; color: #ffd166; border: 3px solid #0a1520;
+            box-shadow: inset 0 -3px 0 rgba(0,0,0,.35), 0 3px 8px rgba(0,0,0,.25);
+            font-size: clamp(2.2rem, 8vw, 3.4rem); font-weight: 800;
+            font-variant-numeric: tabular-nums; letter-spacing: .03em; line-height: 1.2;
         }
-        .target.gone { animation: gone .35s ease forwards; pointer-events: none; }
-        @keyframes gone { to { opacity: 0; transform: translate(-50%, -50%) scale(.4); } }
 
         .aim-easy { text-align: center; font-size: 1.05rem; color: var(--muted); margin: 1rem 0 .5rem; }
         .aim-easy b { color: var(--fg); }
@@ -323,7 +428,7 @@
             <p class="stat" style="color:var(--muted);margin:.2rem 0 .6rem">First, how do you want to answer?</p>
             <div class="modes" id="play-mode">
                 <button class="mode" type="button" data-play="easy">
-                    <b>🟢 Easy</b><span>Five answers float by — press 1&ndash;5 to pop the right one</span>
+                    <b>🟢 Easy</b><span>Five answers fly past — press 1&ndash;5 to shoot the right one</span>
                 </button>
                 <button class="mode" type="button" data-play="hard">
                     <b>🔴 Shooting</b><span>Work it out and type the answer yourself</span>
@@ -364,14 +469,18 @@
         <!-- ============ shooting ============ -->
         <section id="screen-shoot" class="screen">
             <div class="hud">
-                <div>🎯 <span id="hud-progress"></span></div>
-                <div class="clock" id="hud-clock">0.0s</div>
-                <div>⭐ <span id="hud-score">0</span> <span class="combo" id="hud-combo"></span></div>
+                <div class="chip">🎯 <span id="hud-progress"></span></div>
+                <div class="chip mid clock" id="hud-clock">0.0s</div>
+                <div class="chip">⭐ <span id="hud-score">0</span> <span class="combo" id="hud-combo"></span></div>
             </div>
 
             <div class="ask" id="ask" hidden></div>
 
-            <div id="field"><div class="ground"></div></div>
+            <div id="field">
+                <div class="terrain"></div>
+                <div class="clouds"></div>
+                <div id="player"></div>
+            </div>
 
             <div class="aim" id="aim">
                 <input id="shot" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2"
@@ -379,10 +488,10 @@
                 <button class="btn primary fire" id="fire">Fire!</button>
             </div>
             <div class="aim-easy" id="aim-easy" hidden>
-                Press <b>1</b> &ndash; <b>5</b> to pop the bubble with the right answer
+                <b>Click</b> the plane with the right answer &mdash; or press <b>1</b> &ndash; <b>5</b>
             </div>
             <div class="aim-easy" id="aim-hint" hidden>
-                Just type the answer &mdash; it fires as soon as it matches a bubble
+                Just type the answer &mdash; it fires as soon as it matches a plane
             </div>
             <div class="shot-msg" id="shot-msg" aria-live="polite"></div>
 
@@ -700,7 +809,7 @@
             var note = document.createElement('p');
             note.className = 'history-empty';
             note.id = 'history-empty';
-            note.textContent = 'No rounds yet — go shoot some bubbles.';
+            note.textContent = 'No rounds yet — go shoot some planes down.';
             table.parentNode.insertBefore(note, table.nextSibling);
             $('clear-history').disabled = true;
             return;
@@ -936,6 +1045,7 @@
 
         updateProgress();
         showScreen('shoot');
+        drawPlayer();
 
         if (easy) askNext();
         else { fillField(); focusShot(); }
@@ -956,12 +1066,31 @@
 
     /* ---------- bubbles ---------- */
 
+    /* Top-down aircraft, drawn inline so the page stays self-contained.
+       Nose points up; the craft is rotated to face wherever it is heading. */
+    function planeSVG(body, wing, trim) {
+        return '<svg viewBox="0 0 100 100" aria-hidden="true">' +
+            '<path d="M50 6 L57 26 L57 44 L50 50 L43 44 L43 26 Z" fill="' + body + '"/>' +
+            '<path d="M8 52 L43 40 L57 40 L92 52 L92 62 L57 57 L43 57 L8 62 Z" fill="' + wing + '"/>' +
+            '<path d="M28 86 L46 76 L54 76 L72 86 L72 92 L54 88 L46 88 L28 92 Z" fill="' + wing + '"/>' +
+            '<rect x="44" y="44" width="12" height="42" rx="5" fill="' + body + '"/>' +
+            '<circle cx="50" cy="34" r="6" fill="' + trim + '" opacity=".95"/>' +
+            '<circle cx="24" cy="55" r="6" fill="' + body + '"/>' +
+            '<circle cx="76" cy="55" r="6" fill="' + body + '"/>' +
+            '<path d="M50 2 L53 12 L47 12 Z" fill="' + trim + '"/>' +
+            '</svg>';
+    }
+
+    var ENEMY_SVG  = planeSVG('#8a3b34', '#c0483d', '#ffd166');
+    var PLAYER_SVG = planeSVG('#2f4f7a', '#3d7dff', '#bfe3ff');
+
     function fieldBox() {
         var el = $('field');
-        var ground = el.querySelector('.ground');
+        var player = $('player');
+        // keep the enemies out of the strip your own plane occupies
         return {
             w: el.clientWidth,
-            h: el.clientHeight - (ground ? ground.offsetHeight : 0)
+            h: el.clientHeight - (player ? player.offsetHeight + 10 : 0)
         };
     }
 
@@ -969,26 +1098,40 @@
         var box = fieldBox();
         var el = document.createElement('div');
         el.className = 'target' + (data.option ? ' option' : '');
-        el.innerHTML = html;
+        // the craft banks with the heading; the label stays upright and readable
+        el.innerHTML = '<span class="craft">' + ENEMY_SVG + '</span>' +
+                       '<span class="label">' + html + '</span>';
         $('field').appendChild(el);
 
         var hw = el.offsetWidth / 2, hh = el.offsetHeight / 2;
         var speed = 55 + Math.random() * 45;
         var angle = (Math.random() * 0.7 + 0.25) * Math.PI * (Math.random() < 0.5 ? 1 : -1);
+        var still = !!data.at;
 
         var t = {
             a: data.a, b: data.b, value: data.value, index: data.index, el: el,
-            hw: hw, hh: hh, r: Math.max(hw, hh) * 0.92,
-            x: hw + Math.random() * Math.max(1, box.w - hw * 2),
-            y: hh + Math.random() * Math.max(1, box.h - hh * 2),
-            vx: Math.cos(angle) * speed * (Math.random() < 0.5 ? 1 : -1),
-            vy: Math.sin(angle) * speed
+            hw: hw, hh: hh, r: Math.max(hw, hh) * 0.92, still: still,
+            x: still ? data.at.x : hw + Math.random() * Math.max(1, box.w - hw * 2),
+            y: still ? data.at.y : hh + Math.random() * Math.max(1, box.h - hh * 2),
+            vx: still ? 0 : Math.cos(angle) * speed * (Math.random() < 0.5 ? 1 : -1),
+            vy: still ? 0 : Math.sin(angle) * speed,
+            craft: el.querySelector('.craft')
         };
-        // nudge apart from anything it landed on top of
-        game.bubbles.forEach(function (o) { separate(t, o); });
+        if (!still) {
+            // nudge apart from anything it landed on top of
+            game.bubbles.forEach(function (o) { if (!o.still) separate(t, o); });
+        }
         game.bubbles.push(t);
         place(t);
 
+        if (data.option) {
+            el.tabIndex = 0;
+            el.setAttribute('role', 'button');
+            el.setAttribute('aria-label', 'Answer ' + data.value + ', option ' + data.index);
+            el.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); chooseBubble(t); }
+            });
+        }
         el.addEventListener('click', function () { chooseBubble(t); });
         return t;
     }
@@ -996,6 +1139,8 @@
     function place(t) {
         t.el.style.left = t.x + 'px';
         t.el.style.top = t.y + 'px';
+        var heading = t.still ? 180 : Math.atan2(t.vy, t.vx) * 180 / Math.PI + 90;
+        t.craft.style.transform = 'rotate(' + heading.toFixed(1) + 'deg)';
     }
 
     function separate(a, b) {
@@ -1019,8 +1164,11 @@
         var box = fieldBox();
         var bs = game.bubbles, i, j;
 
+        var moving = [];
         for (i = 0; i < bs.length; i++) {
             var t = bs[i];
+            if (t.still) continue;              // easy mode parks them so they are easy to hit
+            moving.push(t);
             t.x += t.vx * dt;
             t.y += t.vy * dt;
 
@@ -1029,10 +1177,10 @@
             if (t.y - t.hh < 0)     { t.y = t.hh;         t.vy = Math.abs(t.vy); }
             if (t.y + t.hh > box.h) { t.y = box.h - t.hh; t.vy = -Math.abs(t.vy); }
         }
-        for (i = 0; i < bs.length; i++) {
-            for (j = i + 1; j < bs.length; j++) separate(bs[i], bs[j]);
+        for (i = 0; i < moving.length; i++) {
+            for (j = i + 1; j < moving.length; j++) separate(moving[i], moving[j]);
         }
-        for (i = 0; i < bs.length; i++) place(bs[i]);
+        for (i = 0; i < moving.length; i++) place(moving[i]);
     }
 
     function tick(now) {
@@ -1048,6 +1196,44 @@
         game.raf = requestAnimationFrame(tick);
     }
 
+    function drawPlayer() {
+        var p = $('player');
+        if (p && !p.innerHTML) p.innerHTML = PLAYER_SVG;
+    }
+
+    // fires from your plane up to the target; the boom waits for it to land
+    function fireBullet(t, onHit) {
+        var field = $('field'), player = $('player');
+        if (!field || !player || !player.offsetParent) { onHit(); return; }
+
+        var fb = field.getBoundingClientRect(), pb = player.getBoundingClientRect();
+        var from = { x: pb.left - fb.left + pb.width / 2, y: pb.top - fb.top + pb.height / 2 };
+
+        var bullet = document.createElement('div');
+        bullet.className = 'bullet';
+        bullet.style.left = from.x + 'px';
+        bullet.style.top = from.y + 'px';
+        bullet.style.transform = 'translate(-50%, -50%) rotate(' +
+            (Math.atan2(t.y - from.y, t.x - from.x) * 180 / Math.PI + 90).toFixed(1) + 'deg)';
+        field.appendChild(bullet);
+
+        var flight = Math.min(240, Math.max(90, Math.hypot(t.x - from.x, t.y - from.y) * 0.45));
+        var done = false;
+        function land() {
+            if (done) return;
+            done = true;
+            bullet.remove();
+            onHit();
+        }
+        if (bullet.animate) {
+            var anim = bullet.animate(
+                [{ left: from.x + 'px', top: from.y + 'px' }, { left: t.x + 'px', top: t.y + 'px' }],
+                { duration: flight, easing: 'linear', fill: 'forwards' });
+            anim.onfinish = land;
+        }
+        setTimeout(land, flight + 60);       // covers browsers without the animation API
+    }
+
     function spawnEffect(cls, text, t) {
         var el = document.createElement('div');
         el.className = cls;
@@ -1058,10 +1244,25 @@
         setTimeout(function () { el.remove(); }, 950);
     }
 
-    function removeBubble(t) {
-        t.el.remove();
+    // taken out of play at once so it cannot be hit twice, while the element
+    // stays on screen until the bullet reaches it
+    function detach(t) {
         var i = game.bubbles.indexOf(t);
         if (i > -1) game.bubbles.splice(i, 1);
+        t.el.classList.add('dying');   // still on screen, but no longer a live target
+    }
+
+    function explode(t, points) {
+        spawnEffect('boom', '💥', t);
+        if (points) spawnEffect('flyscore', '+' + points, t);
+        t.el.remove();
+        soundHit();
+    }
+
+    function shotDownWrong(t) {
+        t.el.classList.add('gone');
+        soundMiss();
+        setTimeout(function () { t.el.remove(); }, 360);
     }
 
     /* ---------- easy mode: five answers, press 1-5 ---------- */
@@ -1074,10 +1275,26 @@
         game.asking = fact;
         $('ask').textContent = fact[0] + ' × ' + fact[1] + ' = ?';
 
+        var slots = easySlots();
         buildOptions(fact[0], fact[1], EASY_OPTIONS).forEach(function (value, i) {
             addBubble('<span class="pick">' + (i + 1) + '</span>' + value,
-                      { a: fact[0], b: fact[1], value: value, index: i + 1, option: true });
+                      { a: fact[0], b: fact[1], value: value, index: i + 1,
+                        option: true, at: slots[i] });
         });
+    }
+
+    // three across the top, two below, numbered left to right so 1-5 reads naturally
+    function easySlots() {
+        var box = fieldBox();
+        var cols = [0.2, 0.5, 0.8], pair = [0.34, 0.66];
+        var rowA = box.h * 0.32, rowB = box.h * 0.72;
+        return [
+            { x: box.w * cols[0], y: rowA },
+            { x: box.w * cols[1], y: rowA },
+            { x: box.w * cols[2], y: rowA },
+            { x: box.w * pair[0], y: rowB },
+            { x: box.w * pair[1], y: rowB }
+        ];
     }
 
     function pickOption(index) {
@@ -1104,10 +1321,9 @@
             $('hud-combo').textContent = '';
             if (game.triedThis === 1) setLevel(me, fact[0], fact[1], Math.max(0, levelOf(me, fact[0], fact[1]) - 1));
 
-            t.el.classList.add('gone');
-            removeBubble(t);
-            soundMiss();
-            $('shot-msg').textContent = t.value + ' is not it — try another bubble';
+            detach(t);
+            fireBullet(t, function () { shotDownWrong(t); });
+            $('shot-msg').textContent = t.value + ' is not it — try another plane';
             return;
         }
 
@@ -1123,10 +1339,8 @@
         me.correct++;
         if (game.triedThis === 0) setLevel(me, fact[0], fact[1], Math.min(5, levelOf(me, fact[0], fact[1]) + 1));
 
-        spawnEffect('boom', '💥', t);
-        spawnEffect('flyscore', '+' + points, t);
-        removeBubble(t);
-        soundHit();
+        detach(t);
+        fireBullet(t, function () { explode(t, points); });
 
         $('hud-score').textContent = game.score;
         $('hud-combo').textContent = game.combo >= 2 ? '🔥 ×' + game.combo : '';
@@ -1155,7 +1369,7 @@
 
     /* Fires the moment the digits typed so far are exactly a bubble's answer,
        so there is no Enter to press. An exact match always wins immediately:
-       type 8 while both 8 and 81 are floating and the 8 goes down. Digits that
+       type 8 while both 8 and 81 are flying and the 8 goes down. Digits that
        are only the start of some answer wait for the next keystroke; digits
        that can never become one are a wild shot straight away. */
     function onTyping() {
@@ -1202,7 +1416,7 @@
         $('aim').classList.add('bad');
         setTimeout(function () { $('aim').classList.remove('bad'); }, 320);
         soundMiss();
-        $('shot-msg').textContent = 'No bubble makes ' + guess + ' — look again!';
+        $('shot-msg').textContent = 'No plane shows ' + guess + ' — look again!';
     }
 
     function hitBubble(t) {
@@ -1218,10 +1432,8 @@
         me.correct++;
         setLevel(me, t.a, t.b, Math.min(5, levelOf(me, t.a, t.b) + 1));
 
-        spawnEffect('boom', '💥', t);
-        spawnEffect('flyscore', '+' + points, t);
-        removeBubble(t);
-        soundHit();
+        detach(t);
+        fireBullet(t, function () { explode(t, points); });
 
         $('hud-score').textContent = game.score;
         $('hud-combo').textContent = game.combo >= 2 ? '🔥 ×' + game.combo : '';
