@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Times Tables — QAM's Learning Materials</title>
+    <title>9×9 — QAM's Learning Materials</title>
     <link rel="stylesheet" href="style.css?v=2">
     <script src="theme.js?v=2"></script>
     <style>
@@ -105,10 +105,15 @@
             font-variant-numeric: tabular-nums; white-space: nowrap;
         }
         table.history th { color: var(--muted); font-weight: 600; font-size: .82rem; }
-        table.history td.stars { letter-spacing: .05em; }
+        table.history td.stars { font-size: .95rem; letter-spacing: .05em; }
         table.history tr.best td { color: var(--g-gold); font-weight: 700; }
-        table.history td.more { color: var(--muted); font-size: .82rem; }
         .history-empty { color: var(--muted); font-size: .9rem; margin: .2rem 0 0; }
+        /* collapsed, the list is a short scrolling window onto the last few rounds */
+        .table-wrap.collapsed { max-height: 12rem; overflow-y: auto; }
+        .table-wrap.collapsed table.history tr:last-child td { border-bottom: none; }
+        table.history tr:first-child th {
+            position: sticky; top: 0; z-index: 1; background: var(--bg);
+        }
 
         /* ---------- mastery grid ---------- */
         .grid-wrap { overflow-x: auto; margin: .5rem 0 1rem; }
@@ -122,21 +127,21 @@
             border-radius: 6px; font-variant-numeric: tabular-nums;
             background: var(--card); color: var(--muted);
         }
-        td.m1 { background: #d7e6ff; color: #14396f; }
-        td.m2 { background: #b7d3ff; color: #14396f; }
-        td.m3 { background: #86e2b6; color: #0d4a2e; }
-        td.m4 { background: #4ecf93; color: #08351f; }
-        td.m5 { background: var(--g-gold); color: #4a2c00; font-weight: 700; }
+        /* one colour per level, shared with the legend swatches below the grid */
+        table.grid td.m0, .legend i.m0 { background: var(--card); }
+        table.grid td.m1, .legend i.m1 { background: #b7d3ff; color: #14396f; }
+        table.grid td.m2, .legend i.m2 { background: #4ecf93; color: #08351f; }
+        table.grid td.m3, .legend i.m3 { background: var(--g-gold); color: #4a2c00; font-weight: 700; }
         @media (prefers-color-scheme: dark) {
-            :root:not([data-theme="light"]) td.m1 { background: #22406e; color: #cfe0ff; }
-            :root:not([data-theme="light"]) td.m2 { background: #2d5697; color: #e2ecff; }
-            :root:not([data-theme="light"]) td.m3 { background: #1e6b48; color: #c9f4de; }
-            :root:not([data-theme="light"]) td.m4 { background: #27946a; color: #eafff5; }
+            :root:not([data-theme="light"]) table.grid td.m1,
+            :root:not([data-theme="light"]) .legend i.m1 { background: #2d5697; color: #e2ecff; }
+            :root:not([data-theme="light"]) table.grid td.m2,
+            :root:not([data-theme="light"]) .legend i.m2 { background: #27946a; color: #eafff5; }
         }
-        :root[data-theme="dark"] td.m1 { background: #22406e; color: #cfe0ff; }
-        :root[data-theme="dark"] td.m2 { background: #2d5697; color: #e2ecff; }
-        :root[data-theme="dark"] td.m3 { background: #1e6b48; color: #c9f4de; }
-        :root[data-theme="dark"] td.m4 { background: #27946a; color: #eafff5; }
+        :root[data-theme="dark"] table.grid td.m1,
+        :root[data-theme="dark"] .legend i.m1 { background: #2d5697; color: #e2ecff; }
+        :root[data-theme="dark"] table.grid td.m2,
+        :root[data-theme="dark"] .legend i.m2 { background: #27946a; color: #eafff5; }
         /* what a finished round did to the mastery grid */
         .gains { margin-bottom: 1rem; }
         .gains .head { color: var(--muted); font-size: .85rem; margin-bottom: .4rem; }
@@ -379,7 +384,7 @@
 
         /* ---------- result ---------- */
         .result { text-align: center; }
-        .stars { font-size: 3rem; letter-spacing: .2rem; margin: .5rem 0; }
+        .result .stars { font-size: 3rem; letter-spacing: .2rem; margin: .5rem 0; }
         .bigscore { font-size: 3.2rem; font-weight: 800; font-variant-numeric: tabular-nums; }
         .praise { font-size: 1.2rem; font-weight: 700; margin: .4rem 0 1rem; }
         .record { color: var(--g-gold); font-weight: 700; }
@@ -387,8 +392,8 @@
 </head>
 <body>
     <header>
-        <h1>Times Tables</h1>
-        <p class="tagline">Learn the times tables, then shoot them down. Progress saves per player, in this browser.</p>
+        <h1>9×9</h1>
+        <p class="tagline">Every times table from 2×1 to 9×9. Learn them, then shoot them down — progress saves per player, in this browser.</p>
         <nav>
             <a href="index.html">Home</a>
             <a href="ml.html">Machine Learning</a>
@@ -438,18 +443,24 @@
 
             <div class="row" style="justify-content:space-between;align-items:flex-end">
                 <h2 style="margin-bottom:.2rem">Recent rounds</h2>
-                <button class="btn ghost" id="clear-history"
-                        title="Remove the rounds listed below. Stars and the grid are kept.">Clear history</button>
+                <div class="row">
+                    <button class="btn ghost" id="toggle-history" aria-expanded="false"
+                            aria-controls="history" hidden>Show all</button>
+                    <button class="btn ghost" id="clear-history"
+                            title="Remove the rounds listed below. Stars and the grid are kept.">Clear history</button>
+                </div>
             </div>
-            <div class="table-wrap"><table class="history" id="history"></table></div>
+            <div class="table-wrap collapsed" id="history-wrap">
+                <table class="history" id="history"></table>
+            </div>
 
             <h2>My times table</h2>
             <div class="grid-wrap"><table class="grid" id="mastery"></table></div>
             <div class="legend">
-                <span><i style="background:var(--card)"></i>Not started</span>
-                <span><i style="background:#b7d3ff"></i>Learning</span>
-                <span><i style="background:#4ecf93"></i>Almost there</span>
-                <span><i style="background:var(--g-gold)"></i>Mastered</span>
+                <span><i class="m0"></i>Not started</span>
+                <span><i class="m1"></i>Learning</span>
+                <span><i class="m2"></i>Almost there</span>
+                <span><i class="m3"></i>Mastered</span>
             </div>
 
             <h2>📚 Learn it first</h2>
@@ -569,7 +580,7 @@
        carried across once, below, and the cookie is then thrown away.     */
     var K_IDS = 'mt_ids', K_LAST = 'mt_last', K_SOUND = 'mt_sound', K_PLAYER = 'mt_p_';
     var K_MODE = 'mt_play';
-    var SCHEMA = 3;
+    var SCHEMA = 4;
 
     // Safari in private mode, and a few locked-down setups, throw on write.
     var canStore = (function () {
@@ -641,13 +652,16 @@
     importCookies();
 
     /* ================== facts and mastery ==================
-       2×1 through 9×9 — 72 facts. mastery is one 0-5 digit per fact,
-       index = (a-2)*9 + (b-1).                                          */
+       2×1 through 9×9 — 72 facts. mastery is one 0-3 digit per fact,
+       index = (a-2)*9 + (b-1). Four steps, one per colour in the legend:
+       not started, learning, almost there, mastered. Three clean answers
+       take a square all the way to gold, so the board keeps moving.     */
+    var MAX_LEVEL = 3;
     var A_LO = 2, A_HI = 9, B_LO = 1, B_HI = 9;
     var FACTS = (A_HI - A_LO + 1) * (B_HI - B_LO + 1);
 
     function factIndex(a, b) { return (a - A_LO) * 9 + (b - B_LO); }
-    function levelOf(p, a, b) { return parseInt(p.mastery.charAt(factIndex(a, b)), 10) || 0; }
+    function levelOf(p, a, b) { return levelAt(p.mastery, factIndex(a, b)); }
     function setLevel(p, a, b, level) {
         var i = factIndex(a, b);
         p.mastery = p.mastery.slice(0, i) + String(level) + p.mastery.slice(i + 1);
@@ -655,8 +669,19 @@
     function blankMastery() { return new Array(FACTS + 1).join('0'); }
     function masteredCount(p) {
         var n = 0;
-        for (var i = 0; i < FACTS; i++) if (p.mastery.charAt(i) === '5') n++;
+        for (var i = 0; i < FACTS; i++) if (levelAt(p.mastery, i) === MAX_LEVEL) n++;
         return n;
+    }
+
+    /* Saves from the old six-step ladder come across as far as they go on the
+       short one — a square is never demoted for a change of scale.        */
+    function levelAt(mastery, i) {
+        return Math.min(MAX_LEVEL, parseInt(mastery.charAt(i), 10) || 0);
+    }
+    function fitLadder(mastery) {
+        var out = '';
+        for (var i = 0; i < FACTS; i++) out += String(levelAt(mastery, i));
+        return out;
     }
 
     function readIds() {
@@ -669,14 +694,15 @@
         var raw = load(K_PLAYER + id), d;
         if (!raw) return null;
         try { d = JSON.parse(raw); } catch (e) { return null; }
-        var current = d.v === SCHEMA;
+        var current = d.v === SCHEMA || d.v === 3;   // v3 progress is still good
         var mastery = (current && typeof d.m === 'string') ? d.m : blankMastery();
         while (mastery.length < FACTS) mastery += '0';
+        mastery = fitLadder(mastery);
         return {
             id: id,
             name: d.n || 'Player',
             face: d.a || '🐱',
-            mastery: mastery.slice(0, FACTS),
+            mastery: mastery,
             stars: d.s || 0,
             rounds: d.r || 0,
             correct: d.c || 0,
@@ -709,7 +735,9 @@
 
     // Newest first. localStorage has room to spare, so the cap is about how
     // much history stays interesting, not about how much fits.
-    var HISTORY_MAX = 25, HISTORY_SHOWN = 12;
+    // HISTORY_FIT is how many rows the collapsed list shows before it scrolls
+    var HISTORY_MAX = 25, HISTORY_FIT = 5;
+    var historyOpen = false;
 
     function addHistory(p, entry) {
         p.history.unshift([entry.mode, entry.misses, entry.time, entry.score, entry.stars]);
@@ -758,6 +786,7 @@
         ['players', 'menu', 'teach', 'shoot', 'result'].forEach(function (s) {
             $('screen-' + s).classList.toggle('active', s === name);
         });
+        if (name === 'menu') measureHistory();   // rows only have a height once shown
         window.scrollTo(0, 0);
     }
 
@@ -895,8 +924,9 @@
             note.className = 'history-empty';
             note.id = 'history-empty';
             note.textContent = 'No rounds yet — go shoot some planes down.';
-            table.parentNode.insertBefore(note, table.nextSibling);
+            table.parentNode.parentNode.insertBefore(note, table.parentNode.nextSibling);
             $('clear-history').disabled = true;
+            $('toggle-history').hidden = true;
             return;
         }
         $('clear-history').disabled = false;
@@ -905,7 +935,7 @@
         me.history.forEach(function (h) { best = Math.max(best, h[3]); });
 
         var html = '<tr><th>#</th><th>Mode</th><th>Slips</th><th>Time</th><th>Score</th><th>Stars</th></tr>';
-        me.history.slice(0, HISTORY_SHOWN).forEach(function (h, i) {
+        me.history.forEach(function (h, i) {
             var mode = h[0], misses = h[1], time = h[2], score = h[3], stars = h[4];
             html += '<tr' + (score === best ? ' class="best"' : '') + '>' +
                 '<td>' + (me.history.length - i) + '</td>' +
@@ -916,12 +946,36 @@
                 '<td class="stars">' + (new Array(stars + 1).join('⭐') || '—') + '</td>' +
                 '</tr>';
         });
-        var older = me.history.length - HISTORY_SHOWN;
-        if (older > 0) {
-            html += '<tr><td class="more" colspan="6">' +
-                    older + ' older ' + (older === 1 ? 'round' : 'rounds') + ' still kept</td></tr>';
-        }
         table.innerHTML = html;
+        renderHistoryToggle();
+    }
+
+    /* The list holds a couple of dozen rounds, which is a lot of screen for
+       something you mostly glance at, so it sits in a short scrolling box and
+       opens out in full only when asked.                                   */
+    function renderHistoryToggle() {
+        var btn = $('toggle-history');
+        var long = me.history.length > HISTORY_FIT;
+        if (!long) historyOpen = false;
+        btn.hidden = !long;
+        btn.textContent = historyOpen ? 'Show fewer' : 'Show all ' + me.history.length;
+        btn.setAttribute('aria-expanded', historyOpen ? 'true' : 'false');
+        var wrap = $('history-wrap');
+        wrap.classList.toggle('collapsed', !historyOpen);
+        // a row is as tall as its stars, so measure rather than guess
+        wrap.style.maxHeight = '';
+        if (!historyOpen) measureHistory();
+    }
+
+    function fitHeight() {
+        var rows = $('history').rows, h = 0;
+        for (var i = 0; i < rows.length && i <= HISTORY_FIT; i++) h += rows[i].offsetHeight;
+        return h;
+    }
+    function measureHistory() {
+        if (!me || !me.history.length || historyOpen) return;
+        var h = fitHeight();
+        if (h) $('history-wrap').style.maxHeight = h + 'px';
     }
 
     function renderMastery() {
@@ -1178,7 +1232,9 @@
         for (var a = A_LO; a <= A_HI; a++) {
             if (table && a !== table) continue;
             for (var b = B_LO; b <= B_HI; b++) {
-                var weight = 6 - levelOf(me, a, b);   // drill what they miss, not what they know
+                // drill what they miss, but never so hard that a nearly-gold
+                // square stops coming up and can never be finished off
+                var weight = Math.max(2, MAX_LEVEL + 1 - levelOf(me, a, b));
                 for (var w = 0; w < weight; w++) pool.push([a, b]);
             }
         }
@@ -1516,13 +1572,15 @@
         // in shooting mode the bubbles are only clickable as a hint target
     }
 
-    /* One fact moves once, when it is finally answered: straight away is a step
-       forward, right after one slip holds the ground it had, and needing more
-       than that steps back. Answering correctly never costs mastery.       */
+    /* One fact moves once, when it is finally answered. Straight away is a step
+       forward; a slip or two only holds the ground already won, because a
+       mis-tap should never undo work; and only real floundering — three wrong
+       goes at five choices — steps back, which is the signal to come back to
+       that square. Answering correctly never costs mastery.               */
     function scoreFact(a, b, tries) {
         var before = levelOf(me, a, b);
-        var delta = tries === 0 ? 1 : tries === 1 ? 0 : -1;
-        var after = Math.max(0, Math.min(5, before + delta));
+        var delta = tries === 0 ? 1 : tries <= 2 ? 0 : -1;
+        var after = Math.max(0, Math.min(MAX_LEVEL, before + delta));
         setLevel(me, a, b, after);
         game.gains.push([a, b, after - before]);
     }
@@ -1760,6 +1818,11 @@
     $('cancel-player').addEventListener('click', function () { $('new-player').hidden = true; });
     $('new-name').addEventListener('keydown', function (e) { if (e.key === 'Enter') createPlayer(); });
 
+    $('toggle-history').addEventListener('click', function () {
+        historyOpen = !historyOpen;
+        renderHistoryToggle();
+        if (!historyOpen) $('history-wrap').scrollTop = 0;
+    });
     // Clear takes two clicks, so a stray tap cannot wipe the list.
     $('clear-history').addEventListener('click', function () {
         var btn = $('clear-history');
