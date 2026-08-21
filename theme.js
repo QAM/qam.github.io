@@ -29,7 +29,7 @@
     apply(mode);
 
     var LABEL = { light: '☀️', dark: '🌙', system: '🖥️' };
-    var TITLE = { light: '亮色 Light', dark: '暗色 Dark', system: '跟隨系統 System' };
+    var TITLE = { light: 'Light', dark: 'Dark', system: 'System' };
     var NEXT  = { light: 'dark', dark: 'system', system: 'light' };
 
     function wire() {
@@ -37,7 +37,7 @@
         if (!btn) return;
         function render() {
             btn.textContent = LABEL[mode];
-            btn.title = '主題：' + TITLE[mode] + '（點一下換）';
+            btn.title = 'Theme: ' + TITLE[mode] + ' (click to change)';
             btn.setAttribute('aria-label', 'Theme: ' + TITLE[mode] + '. Click to change.');
         }
         btn.addEventListener('click', function () {

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>九九乘法表 — QAM's Learning Materials</title>
+    <title>Times Tables — QAM's Learning Materials</title>
     <link rel="stylesheet" href="style.css">
     <script src="theme.js"></script>
     <style>
@@ -223,7 +223,7 @@
 </head>
 <body>
     <header>
-        <h1>九九乘法表</h1>
+        <h1>Times Tables</h1>
         <p class="tagline">Learn the times tables, then shoot them down. Progress saves per player, in this browser.</p>
         <nav>
             <a href="index.html">Home</a>
@@ -237,24 +237,23 @@
 
     <div class="game">
         <div id="cookie-warning" class="notice" hidden>
-            這個瀏覽器不能存 cookie，成績不會被記住。<br>
-            <span class="muted">Cookies are blocked — progress will not be saved. If you opened this file
-            directly, serve it over http instead.</span>
+            Cookies are blocked, so progress will not be saved.<br>
+            <span class="muted">If you opened this file directly, serve it over http instead.</span>
         </div>
 
         <!-- ============ players ============ -->
         <section id="screen-players" class="screen active">
-            <h2>誰要玩？</h2>
+            <h2>Who is playing?</h2>
             <div id="player-list" class="players"></div>
 
             <div id="new-player" hidden style="margin-top:1.5rem">
-                <h2>新玩家</h2>
-                <label for="new-name">名字</label><br>
-                <input type="text" id="new-name" maxlength="8" placeholder="小明" autocomplete="off">
+                <h2>New player</h2>
+                <label for="new-name">Name</label><br>
+                <input type="text" id="new-name" maxlength="8" placeholder="Alex" autocomplete="off">
                 <div class="avatars" id="avatar-pick"></div>
                 <div class="row">
-                    <button class="btn primary" id="create-player">開始玩</button>
-                    <button class="btn ghost" id="cancel-player">取消</button>
+                    <button class="btn primary" id="create-player">Start playing</button>
+                    <button class="btn ghost" id="cancel-player">Cancel</button>
                 </div>
             </div>
         </section>
@@ -268,34 +267,34 @@
                     <div class="stat" id="menu-stat"></div>
                 </div>
                 <div style="margin-left:auto" class="row">
-                    <button class="btn ghost" id="sound-toggle" title="音效">🔊</button>
-                    <button class="btn ghost" id="switch-player">換人</button>
+                    <button class="btn ghost" id="sound-toggle" title="Sound">🔊</button>
+                    <button class="btn ghost" id="switch-player">Switch player</button>
                 </div>
             </div>
 
-            <h2>我的九九乘法表</h2>
+            <h2>My times table</h2>
             <div class="grid-wrap"><table class="grid" id="mastery"></table></div>
             <div class="legend">
-                <span><i style="background:var(--card)"></i>還沒練</span>
-                <span><i style="background:#b7d3ff"></i>學習中</span>
-                <span><i style="background:#4ecf93"></i>快會了</span>
-                <span><i style="background:var(--g-gold)"></i>學會了</span>
+                <span><i style="background:var(--card)"></i>Not started</span>
+                <span><i style="background:#b7d3ff"></i>Learning</span>
+                <span><i style="background:#4ecf93"></i>Almost there</span>
+                <span><i style="background:var(--g-gold)"></i>Mastered</span>
             </div>
 
-            <h2>📚 先學會它</h2>
-            <p class="stat" style="color:var(--muted);margin:.2rem 0">點一個數字，慢慢學它的乘法表。</p>
+            <h2>📚 Learn it first</h2>
+            <p class="stat" style="color:var(--muted);margin:.2rem 0">Pick a number and take its table one step at a time.</p>
             <div class="tables" id="teach-pick"></div>
 
-            <h2>🎯 再來射擊！</h2>
+            <h2>🎯 Now shoot!</h2>
             <div class="modes">
                 <button class="mode" id="mode-mixed">
-                    <b>混合射擊</b><span>10 個目標，2×1 到 9×9 都有</span>
+                    <b>Mixed targets</b><span>10 targets, anything from 2×1 to 9×9</span>
                 </button>
                 <button class="mode" id="mode-weak">
-                    <b>弱點射擊</b><span>10 個目標，專打最不熟的</span>
+                    <b>Weak spots</b><span>10 targets, the ones you keep missing</span>
                 </button>
             </div>
-            <p class="stat" style="color:var(--muted);margin:.8rem 0 .2rem">或是只打一個乘法表：</p>
+            <p class="stat" style="color:var(--muted);margin:.8rem 0 .2rem">Or shoot just one table:</p>
             <div class="tables" id="shoot-pick"></div>
         </section>
 
@@ -303,17 +302,17 @@
         <section id="screen-teach" class="screen">
             <div class="row" style="justify-content:space-between">
                 <h2 id="teach-title" style="margin-top:0;border:none"></h2>
-                <button class="btn ghost" id="teach-back">回主選單</button>
+                <button class="btn ghost" id="teach-back">Back to menu</button>
             </div>
 
-            <p class="stat" style="color:var(--muted)">先數數看，一次加一個：</p>
+            <p class="stat" style="color:var(--muted)">Count up, adding one each time:</p>
             <div class="skipline" id="skipline"></div>
 
             <div class="facts" id="facts"></div>
 
             <div class="row" style="justify-content:center;margin-top:1.5rem">
-                <button class="btn" id="teach-play">▶︎ 念一遍給我聽</button>
-                <button class="btn primary" id="teach-to-game">我學會了，去射擊 🎯</button>
+                <button class="btn" id="teach-play">▶︎ Read it to me</button>
+                <button class="btn primary" id="teach-to-game">I know it — go shoot 🎯</button>
             </div>
         </section>
 
@@ -321,7 +320,7 @@
         <section id="screen-shoot" class="screen">
             <div class="hud">
                 <div>🎯 <span id="hud-progress"></span></div>
-                <div class="clock" id="hud-clock">0.0 秒</div>
+                <div class="clock" id="hud-clock">0.0s</div>
                 <div>⭐ <span id="hud-score">0</span> <span class="combo" id="hud-combo"></span></div>
             </div>
 
@@ -329,14 +328,14 @@
 
             <div class="aim" id="aim">
                 <input id="shot" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3"
-                       autocomplete="off" aria-label="答案">
-                <button class="btn primary fire" id="fire">發射！</button>
+                       autocomplete="off" aria-label="Answer">
+                <button class="btn primary fire" id="fire">Fire!</button>
             </div>
             <div class="keypad" id="keypad"></div>
             <div class="shot-msg" id="shot-msg" aria-live="polite"></div>
 
             <div class="row" style="justify-content:center;margin-top:1rem">
-                <button class="btn ghost" id="quit-shoot">結束</button>
+                <button class="btn ghost" id="quit-shoot">Quit</button>
             </div>
         </section>
 
@@ -349,8 +348,8 @@
                 <div id="result-detail" style="color:var(--muted);margin-bottom:.6rem"></div>
                 <div id="result-record" class="record" style="margin-bottom:1.2rem"></div>
                 <div class="row" style="justify-content:center">
-                    <button class="btn primary" id="again">再玩一次</button>
-                    <button class="btn" id="back-menu">回主選單</button>
+                    <button class="btn primary" id="again">Play again</button>
+                    <button class="btn" id="back-menu">Back to menu</button>
                 </div>
             </div>
         </section>
@@ -428,7 +427,7 @@
         while (mastery.length < FACTS) mastery += '0';
         return {
             id: id,
-            name: d.n || '玩家',
+            name: d.n || 'Player',
             face: d.a || '🐱',
             mastery: mastery.slice(0, FACTS),
             stars: d.s || 0,
@@ -518,7 +517,7 @@
             card.type = 'button';
             card.innerHTML =
                 '<div class="face"></div><div class="who"></div>' +
-                '<div class="sub">⭐ ' + p.stars + ' ・ 學會 ' + masteredCount(p) + '/' + FACTS + '</div>';
+                '<div class="sub">⭐ ' + p.stars + ' · ' + masteredCount(p) + '/' + FACTS + ' learned</div>';
             card.querySelector('.face').textContent = p.face;
             card.querySelector('.who').textContent = p.name;   // player names are user input
             card.addEventListener('click', function () { choosePlayer(p.id); });
@@ -527,7 +526,7 @@
             kill.className = 'kill';
             kill.type = 'button';
             kill.textContent = '×';
-            kill.title = '刪除 ' + p.name;
+            kill.title = 'Delete ' + p.name;
             kill.addEventListener('click', function (ev) {
                 ev.stopPropagation();
                 if (kill.dataset.armed === '1') {
@@ -536,7 +535,7 @@
                     return;
                 }
                 kill.dataset.armed = '1';
-                kill.textContent = '確定?';
+                kill.textContent = 'Sure?';
                 kill.style.borderRadius = '8px';
                 kill.style.padding = '0 .4rem';
                 kill.style.fontSize = '.72rem';
@@ -554,7 +553,7 @@
             var add = document.createElement('button');
             add.className = 'player add';
             add.type = 'button';
-            add.innerHTML = '<div class="face">＋</div><div class="who">新玩家</div>';
+            add.innerHTML = '<div class="face">+</div><div class="who">New player</div>';
             add.addEventListener('click', openNewPlayer);
             list.appendChild(add);
         }
@@ -583,7 +582,7 @@
         var id = String(Date.now()).slice(-8) + String(Math.floor(Math.random() * 100));
         var player = {
             id: id,
-            name: $('new-name').value.trim() || '玩家',
+            name: $('new-name').value.trim() || 'Player',
             face: pendingAvatar,
             mastery: blankMastery(),
             stars: 0, rounds: 0, correct: 0, asked: 0, bestScore: 0, bestTime: 0
@@ -607,11 +606,12 @@
         $('menu-face').textContent = me.face;
         $('menu-name').textContent = me.name;
         var pct = me.asked ? Math.round(me.correct / me.asked * 100) : 0;
-        var bits = ['⭐ ' + me.stars + ' 顆星', '玩過 ' + me.rounds + ' 回合',
-                    '學會 ' + masteredCount(me) + '/' + FACTS, '命中率 ' + pct + '%'];
-        if (me.bestScore) bits.push('最高分 ' + me.bestScore);
-        if (me.bestTime) bits.push('最快全中 ' + me.bestTime.toFixed(1) + ' 秒');
-        $('menu-stat').textContent = bits.join(' ・ ');
+        var bits = ['⭐ ' + me.stars + (me.stars === 1 ? ' star' : ' stars'),
+                    me.rounds + (me.rounds === 1 ? ' round played' : ' rounds played'),
+                    masteredCount(me) + '/' + FACTS + ' learned', pct + '% hit rate'];
+        if (me.bestScore) bits.push('best score ' + me.bestScore);
+        if (me.bestTime) bits.push('fastest clear ' + me.bestTime.toFixed(1) + 's');
+        $('menu-stat').textContent = bits.join(' · ');
         renderMastery();
         $('mode-weak').disabled = me.asked < 10;
         $('sound-toggle').textContent = soundOn ? '🔊' : '🔇';
@@ -642,7 +642,7 @@
                         var b = document.createElement('button');
                         b.type = 'button';
                         b.textContent = n;
-                        b.title = n + ' 的乘法表';
+                        b.title = 'The ' + n + ' times table';
                         b.addEventListener('click', function () { pair[1](n); });
                         box.appendChild(b);
                     })(n);
@@ -659,7 +659,7 @@
     function openTeach(n) {
         teachTable = n;
         stopTeachPlay();
-        $('teach-title').textContent = n + ' 的乘法表';
+        $('teach-title').textContent = 'The ' + n + ' times table';
 
         var strip = '';
         for (var b = B_LO; b <= B_HI; b++) {
@@ -692,7 +692,7 @@
         card.innerHTML =
             '<div class="line">' + a + ' × ' + b + ' = ' + (a * b) + '</div>' +
             '<div class="why">' +
-                '就是 ' + b + ' 個 ' + a + ' 加起來：' + adds.join(' + ') + ' = ' + (a * b) +
+                "That's " + b + ' lots of ' + a + ': ' + adds.join(' + ') + ' = ' + (a * b) +
                 '<div class="dots">' + dots + '</div>' +
             '</div>';
 
@@ -717,13 +717,13 @@
 
     function stopTeachPlay() {
         if (teachTimer) { clearInterval(teachTimer); teachTimer = null; }
-        $('teach-play').textContent = '▶︎ 念一遍給我聽';
+        $('teach-play').textContent = '▶︎ Read it to me';
         litStep(0);
     }
 
     function startTeachPlay() {
         var step = B_LO - 1;
-        $('teach-play').textContent = '⏸ 停';
+        $('teach-play').textContent = '⏸ Stop';
         teachTimer = setInterval(function () {
             step++;
             if (step > B_HI) { stopTeachPlay(); return; }
@@ -828,7 +828,7 @@
         game.lastFrame = now;
 
         game.elapsed += dt;
-        $('hud-clock').textContent = game.elapsed.toFixed(1) + ' 秒';
+        $('hud-clock').textContent = game.elapsed.toFixed(1) + 's';
 
         var t = game.target;
         if (t) {
@@ -884,9 +884,9 @@
         soundMiss();
 
         if (game.tries >= 2) {
-            revealAndAdvance('沒打中！' + t.a + ' × ' + t.b + ' = ' + answer);
+            revealAndAdvance('Missed it!  ' + t.a + ' × ' + t.b + ' = ' + answer);
         } else {
-            $('shot-msg').textContent = '差一點，再試一次！';
+            $('shot-msg').textContent = 'So close — try again!';
             focusShot();
         }
     }
@@ -916,7 +916,7 @@
 
         $('hud-score').textContent = game.score;
         $('hud-combo').textContent = game.combo >= 2 ? '🔥 ×' + game.combo : '';
-        $('shot-msg').textContent = ['打中了！', '好準！', '太棒了！', '正中紅心！'][Math.floor(Math.random() * 4)];
+        $('shot-msg').textContent = ['Hit!', 'Nice shot!', 'Great!', 'Bullseye!'][Math.floor(Math.random() * 4)];
 
         setTimeout(function () {
             if (game && game.running) { $('shot-msg').textContent = ''; nextTarget(); }
@@ -925,7 +925,7 @@
 
     function escapeTarget() {
         soundEscape();
-        revealAndAdvance('飛走了！' + game.target.a + ' × ' + game.target.b + ' = ' +
+        revealAndAdvance('It got away!  ' + game.target.a + ' × ' + game.target.b + ' = ' +
                          (game.target.a * game.target.b));
     }
 
@@ -976,21 +976,21 @@
 
         $('result-stars').textContent =
             new Array(stars + 1).join('⭐') + new Array(4 - stars).join('☆');
-        $('result-score').textContent = game.score + ' 分';
+        $('result-score').textContent = game.score + ' points';
         $('result-praise').textContent =
-            game.cleanHits >= 10 ? '全部一次命中！神射手 🏆' :
-            game.hits >= 8 ? '很準喔，快滿分了！' :
-            game.hits >= 6 ? '不錯，再多練幾次！' :
-            '別急，先回去看看乘法表 💪';
+            game.cleanHits >= 10 ? 'Every one first try — sharpshooter! 🏆' :
+            game.hits >= 8 ? 'Great aim, nearly perfect!' :
+            game.hits >= 6 ? 'Good going — a few more rounds!' :
+            'No rush — go look at the table again 💪';
         $('result-detail').textContent =
-            '打中 ' + game.hits + '/' + ROUND_LEN + ' ・ 用了 ' + time + ' 秒' +
-            (game.bestCombo >= 2 ? ' ・ 最長連中 ' + game.bestCombo : '') +
-            (game.missed.length ? '　要記住：' + game.missed.join('、') : '');
+            'Hit ' + game.hits + '/' + ROUND_LEN + ' in ' + time + 's' +
+            (game.bestCombo >= 2 ? ' · best streak ' + game.bestCombo : '') +
+            (game.missed.length ? '    Remember: ' + game.missed.join(', ') : '');
 
         var records = [];
-        if (newBestScore) records.push('🎉 新高分！');
-        if (newBestTime) records.push('⚡️ 新紀錄 ' + time + ' 秒全中！');
-        $('result-record').textContent = records.join('　');
+        if (newBestScore) records.push('🎉 New high score!');
+        if (newBestTime) records.push('⚡️ New record — all 10 in ' + time + 's!');
+        $('result-record').textContent = records.join('   ');
 
         soundFinish();
         showScreen('result');
