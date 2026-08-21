@@ -130,18 +130,23 @@
         /* one colour per level, shared with the legend swatches below the grid */
         table.grid td.m0, .legend i.m0 { background: var(--card); }
         table.grid td.m1, .legend i.m1 { background: #b7d3ff; color: #14396f; }
-        table.grid td.m2, .legend i.m2 { background: #4ecf93; color: #08351f; }
-        table.grid td.m3, .legend i.m3 { background: var(--g-gold); color: #4a2c00; font-weight: 700; }
+        table.grid td.m2, .legend i.m2 { background: #86dbd0; color: #0b463f; }
+        table.grid td.m3, .legend i.m3 { background: #4ecf93; color: #08351f; }
+        table.grid td.m4, .legend i.m4 { background: var(--g-gold); color: #4a2c00; font-weight: 700; }
         @media (prefers-color-scheme: dark) {
             :root:not([data-theme="light"]) table.grid td.m1,
             :root:not([data-theme="light"]) .legend i.m1 { background: #2d5697; color: #e2ecff; }
             :root:not([data-theme="light"]) table.grid td.m2,
-            :root:not([data-theme="light"]) .legend i.m2 { background: #27946a; color: #eafff5; }
+            :root:not([data-theme="light"]) .legend i.m2 { background: #1f7d75; color: #d6fff8; }
+            :root:not([data-theme="light"]) table.grid td.m3,
+            :root:not([data-theme="light"]) .legend i.m3 { background: #27946a; color: #eafff5; }
         }
         :root[data-theme="dark"] table.grid td.m1,
         :root[data-theme="dark"] .legend i.m1 { background: #2d5697; color: #e2ecff; }
         :root[data-theme="dark"] table.grid td.m2,
-        :root[data-theme="dark"] .legend i.m2 { background: #27946a; color: #eafff5; }
+        :root[data-theme="dark"] .legend i.m2 { background: #1f7d75; color: #d6fff8; }
+        :root[data-theme="dark"] table.grid td.m3,
+        :root[data-theme="dark"] .legend i.m3 { background: #27946a; color: #eafff5; }
         /* what a finished round did to the mastery grid */
         .gains { margin-bottom: 1rem; }
         .gains .head { color: var(--muted); font-size: .85rem; margin-bottom: .4rem; }
@@ -156,6 +161,7 @@
 
         .legend { display: flex; flex-wrap: wrap; gap: .8rem; font-size: .82rem; color: var(--muted); }
         .legend i { display: inline-block; width: .9rem; height: .9rem; border-radius: 4px; vertical-align: -1px; margin-right: .3rem; }
+        .rule { color: var(--muted); max-width: 46rem; margin: .6rem 0 0; }
 
         /* ---------- teach ---------- */
         .skipline {
@@ -214,6 +220,22 @@
         }
         .hud .chip.mid { flex: 1; justify-content: center; background: #1c3346; }
         .hud .clock { font-size: 1.15rem; }
+        /* the three seconds that decide whether a square climbs, made visible */
+        .fastbar {
+            display: flex; align-items: center; gap: .5rem; margin-bottom: .6rem;
+            font-size: .78rem; font-weight: 700; color: var(--g-green);
+        }
+        .fastbar .lab { white-space: nowrap; }
+        .fastbar .track {
+            flex: 1; height: 6px; border-radius: 999px;
+            background: var(--border); overflow: hidden;
+        }
+        .fastbar i {
+            display: block; height: 100%; width: 100%; border-radius: 999px;
+            background: var(--g-green);
+        }
+        .fastbar.spent { color: var(--muted); }
+        .fastbar.spent i { background: var(--border); }
         .hud .combo { color: var(--g-gold); }
 
         /* ---------- the sky ---------- */
@@ -459,9 +481,14 @@
             <div class="legend">
                 <span><i class="m0"></i>Not started</span>
                 <span><i class="m1"></i>Learning</span>
-                <span><i class="m2"></i>Almost there</span>
-                <span><i class="m3"></i>Mastered</span>
+                <span><i class="m2"></i>Getting there</span>
+                <span><i class="m3"></i>Almost there</span>
+                <span><i class="m4"></i>Mastered</span>
             </div>
+            <p class="stat rule">A square only climbs when the answer comes back in
+               under <span id="fast-seconds"></span> seconds — that is knowing it, rather
+               than working it out. Take longer and the square holds; get it wrong and
+               it slips one.</p>
 
             <h2>📚 Learn it first</h2>
             <p class="stat" style="color:var(--muted);margin:.2rem 0">Pick a number and take its table one step at a time.</p>
@@ -522,6 +549,11 @@
                 <div class="chip">⭐ <span id="hud-score">0</span> <span class="combo" id="hud-combo"></span></div>
             </div>
 
+            <div class="fastbar" id="fastbar" aria-hidden="true">
+                <span class="lab" id="fastbar-label"></span>
+                <span class="track"><i></i></span>
+            </div>
+
             <div class="ask" id="ask" hidden></div>
 
             <div id="field">
@@ -580,7 +612,7 @@
        carried across once, below, and the cookie is then thrown away.     */
     var K_IDS = 'mt_ids', K_LAST = 'mt_last', K_SOUND = 'mt_sound', K_PLAYER = 'mt_p_';
     var K_MODE = 'mt_play';
-    var SCHEMA = 4;
+    var SCHEMA = 5;
 
     // Safari in private mode, and a few locked-down setups, throw on write.
     var canStore = (function () {
@@ -652,11 +684,16 @@
     importCookies();
 
     /* ================== facts and mastery ==================
-       2×1 through 9×9 — 72 facts. mastery is one 0-3 digit per fact,
-       index = (a-2)*9 + (b-1). Four steps, one per colour in the legend:
-       not started, learning, almost there, mastered. Three clean answers
-       take a square all the way to gold, so the board keeps moving.     */
-    var MAX_LEVEL = 3;
+       2×1 through 9×9 — 72 facts. mastery is one 0-4 digit per fact,
+       index = (a-2)*9 + (b-1). Five steps, one per colour in the legend.
+
+       A level is earned by recall, not by arithmetic: only an answer given
+       inside FAST_ANSWER moves a square up. Slower but right holds the
+       ground already won; wrong slips one, though a square that has been
+       started never falls all the way back to grey.                     */
+    var MAX_LEVEL = 4;
+    var FAST_ANSWER = 3.0;      // seconds — quicker than this is recall
+    var SLOW_ANSWER = 8.0;      // seconds — past here an answer scores the floor
     var A_LO = 2, A_HI = 9, B_LO = 1, B_HI = 9;
     var FACTS = (A_HI - A_LO + 1) * (B_HI - B_LO + 1);
 
@@ -673,14 +710,17 @@
         return n;
     }
 
-    /* Saves from the old six-step ladder come across as far as they go on the
-       short one — a square is never demoted for a change of scale.        */
     function levelAt(mastery, i) {
         return Math.min(MAX_LEVEL, parseInt(mastery.charAt(i), 10) || 0);
     }
-    function fitLadder(mastery) {
+    /* Older saves counted clean answers; a level now means a *fast* one, which
+       none of that progress is evidence of. So they come across capped one
+       short of gold: the facts are still known, the speed is still to prove. */
+    function fitLadder(mastery, cap) {
         var out = '';
-        for (var i = 0; i < FACTS; i++) out += String(levelAt(mastery, i));
+        for (var i = 0; i < FACTS; i++) {
+            out += String(Math.min(cap, parseInt(mastery.charAt(i), 10) || 0));
+        }
         return out;
     }
 
@@ -694,10 +734,10 @@
         var raw = load(K_PLAYER + id), d;
         if (!raw) return null;
         try { d = JSON.parse(raw); } catch (e) { return null; }
-        var current = d.v === SCHEMA || d.v === 3;   // v3 progress is still good
+        var current = d.v === SCHEMA || d.v === 3 || d.v === 4;   // older progress still counts
         var mastery = (current && typeof d.m === 'string') ? d.m : blankMastery();
         while (mastery.length < FACTS) mastery += '0';
-        mastery = fitLadder(mastery);
+        mastery = fitLadder(mastery, d.v === SCHEMA ? MAX_LEVEL : MAX_LEVEL - 1);
         return {
             id: id,
             name: d.n || 'Player',
@@ -979,6 +1019,7 @@
     }
 
     function renderMastery() {
+        $('fast-seconds').textContent = FAST_ANSWER;
         var html = '<tr><th>×</th>';
         for (var c = B_LO; c <= B_HI; c++) html += '<th>' + c + '</th>';
         html += '</tr>';
@@ -1289,7 +1330,7 @@
             mode: playMode, opts: opts, facts: facts,
             spawned: 0, resolved: 0, triedThis: 0,
             hits: 0, misses: 0, score: 0, combo: 0, bestCombo: 0, gains: [],
-            elapsed: 0, running: true,
+            elapsed: 0, clock: 0, thinking: 0, running: true,
             bubbles: [], lastFrame: 0, raf: 0
         };
 
@@ -1324,6 +1365,20 @@
 
     function updateProgress() {
         $('hud-progress').textContent = game.resolved + ' / ' + ROUND_LEN;
+    }
+
+    // drains over FAST_ANSWER, so the window a square climbs in is something
+    // you can see going rather than a rule you have to be told
+    var FAST_LABEL = '⚡ quick answer — square goes up';
+    var SLOW_LABEL = 'still worth points — but the square holds';
+
+    function drawFastBar() {
+        var left = Math.max(0, 1 - spentOnAnswer() / FAST_ANSWER);
+        var bar = $('fastbar'), spent = left === 0;
+        bar.querySelector('i').style.width = (left * 100).toFixed(1) + '%';
+        if (spent === bar.classList.contains('spent') && $('fastbar-label').textContent) return;
+        bar.classList.toggle('spent', spent);
+        $('fastbar-label').textContent = spent ? SLOW_LABEL : FAST_LABEL;
     }
 
     /* ---------- bubbles ---------- */
@@ -1453,6 +1508,7 @@
 
         game.elapsed += dt;
         $('hud-clock').textContent = game.elapsed.toFixed(1) + 's';
+        drawFastBar();
         step(dt);
 
         game.raf = requestAnimationFrame(tick);
@@ -1531,6 +1587,7 @@
 
     function askNext() {
         game.triedThis = 0;
+        restartAnswerClock();
         clearField();
 
         var fact = game.facts[game.spawned++];
@@ -1572,15 +1629,38 @@
         // in shooting mode the bubbles are only clickable as a hint target
     }
 
-    /* One fact moves once, when it is finally answered. Straight away is a step
-       forward; a slip or two only holds the ground already won, because a
-       mis-tap should never undo work; and only real floundering — three wrong
-       goes at five choices — steps back, which is the signal to come back to
-       that square. Answering correctly never costs mastery.               */
-    function scoreFact(a, b, tries) {
+    /* Time spent on the answer in hand. The clock restarts when a question is
+       put up, so the pause between questions is nobody's thinking time.    */
+    function spentOnAnswer() { return Math.max(0, game.elapsed - game.clock); }
+    function restartAnswerClock() { game.clock = game.elapsed; }
+
+    /* Full marks for recall, sliding to a floor for an answer worked out the
+       long way. A wrong shot costs points outright — that is the accuracy
+       half of the score, and it is easier for a kid to read than a
+       multiplier applied to a payout they never see.                       */
+    function answerPoints(spent) {
+        if (spent <= FAST_ANSWER) return 100;
+        if (spent >= SLOW_ANSWER) return 20;
+        return Math.round(100 - 80 * (spent - FAST_ANSWER) / (SLOW_ANSWER - FAST_ANSWER));
+    }
+    var WRONG_COST = 25;
+
+    function chargeWrong(why) {
+        game.score = Math.max(0, game.score - WRONG_COST);
+        $('hud-score').textContent = game.score;
+        return why + ' −' + WRONG_COST;
+    }
+
+    /* One fact moves once, when it is finally answered. Answering inside
+       FAST_ANSWER is recall and steps the square forward; slower but right
+       holds the ground already won; a wrong answer steps back, because a
+       square marked green should mean the number arrives without counting.
+       A square that has been started never drops all the way to grey.     */
+    function scoreFact(a, b, tries, spent) {
         var before = levelOf(me, a, b);
-        var delta = tries === 0 ? 1 : tries <= 2 ? 0 : -1;
-        var after = Math.max(0, Math.min(MAX_LEVEL, before + delta));
+        var delta = tries > 0 ? -1 : (spent <= FAST_ANSWER ? 1 : 0);
+        var floor = before > 0 ? 1 : 0;
+        var after = Math.max(floor, Math.min(MAX_LEVEL, before + delta));
         setLevel(me, a, b, after);
         game.gains.push([a, b, after - before]);
     }
@@ -1598,7 +1678,8 @@
 
             detach(t);
             fireBullet(t, function () { shotDownWrong(t); });
-            $('shot-msg').textContent = t.value + ' is not it — try another plane';
+            $('shot-msg').textContent =
+                chargeWrong(t.value + ' is not it — try another plane');
             return;
         }
 
@@ -1607,12 +1688,14 @@
         game.combo++;
         game.bestCombo = Math.max(game.bestCombo, game.combo);
 
-        var points = Math.max(20, 100 - game.triedThis * 30) + (game.combo >= 2 ? game.combo * 10 : 0);
+        var spent = spentOnAnswer();
+        game.thinking += spent;
+        var points = answerPoints(spent) + (game.combo >= 2 ? game.combo * 10 : 0);
         game.score += points;
 
         me.asked++;
         me.correct++;
-        scoreFact(fact[0], fact[1], game.triedThis);
+        scoreFact(fact[0], fact[1], game.triedThis, spent);
 
         detach(t);
         fireBullet(t, function () { explode(t, points); });
@@ -1620,7 +1703,9 @@
         $('hud-score').textContent = game.score;
         $('hud-combo').textContent = game.combo >= 2 ? '🔥 ×' + game.combo : '';
         $('shot-msg').textContent = fact[0] + ' × ' + fact[1] + ' = ' + answer + '   ' +
-            ['Hit!', 'Nice shot!', 'Great!', 'Bullseye!'][Math.floor(Math.random() * 4)];
+            (spent <= FAST_ANSWER
+                ? ['Hit!', 'Nice shot!', 'Great!', 'Bullseye!'][Math.floor(Math.random() * 4)]
+                : 'Right — but ' + spent.toFixed(1) + 's is working it out');
         updateProgress();
 
         if (game.resolved >= ROUND_LEN) { finishRound(); return; }
@@ -1692,7 +1777,9 @@
         $('aim').classList.add('bad');
         setTimeout(function () { $('aim').classList.remove('bad'); }, 320);
         soundMiss();
-        $('shot-msg').textContent = 'No plane shows ' + guess + ' — look again!';
+        // costs points and the streak, but no mastery: there is still no
+        // telling which of the three planes the number was aimed at
+        $('shot-msg').textContent = chargeWrong('No plane shows ' + guess + ' — look again!');
     }
 
     function hitBubble(t) {
@@ -1701,12 +1788,15 @@
         game.combo++;
         game.bestCombo = Math.max(game.bestCombo, game.combo);
 
-        var points = 100 + (game.combo >= 2 ? game.combo * 10 : 0);
+        var spent = spentOnAnswer();
+        game.thinking += spent;
+        var points = answerPoints(spent) + (game.combo >= 2 ? game.combo * 10 : 0);
         game.score += points;
 
         me.asked++;
         me.correct++;
-        scoreFact(t.a, t.b, 0);
+        scoreFact(t.a, t.b, 0, spent);
+        restartAnswerClock();               // the next plane gets its own clock
 
         detach(t);
         fireBullet(t, function () { explode(t, points); });
@@ -1714,7 +1804,9 @@
         $('hud-score').textContent = game.score;
         $('hud-combo').textContent = game.combo >= 2 ? '🔥 ×' + game.combo : '';
         $('shot-msg').textContent = t.a + ' × ' + t.b + ' = ' + t.value + '   ' +
-            ['Hit!', 'Nice shot!', 'Great!', 'Bullseye!'][Math.floor(Math.random() * 4)];
+            (spent <= FAST_ANSWER
+                ? ['Hit!', 'Nice shot!', 'Great!', 'Bullseye!'][Math.floor(Math.random() * 4)]
+                : 'Right — but ' + spent.toFixed(1) + 's is working it out');
         updateProgress();
 
         if (game.resolved >= ROUND_LEN) finishRound();
@@ -1742,8 +1834,13 @@
     function finishRound() {
         stopGame();
 
-        // every bubble gets answered eventually, so the score is about how few slips it took
-        var stars = game.misses === 0 ? 3 : game.misses <= 2 ? 2 : game.misses <= 5 ? 1 : 0;
+        /* Every plane gets shot down eventually, so stars are about how it was
+           done: clean and quick, clean, or neither. Average is over thinking
+           time only, not the pauses between questions.                     */
+        var pace = game.thinking / ROUND_LEN;
+        var stars = (game.misses === 0 && pace <= FAST_ANSWER) ? 3
+                  : (game.misses <= 2 && pace <= SLOW_ANSWER) ? 2
+                  : game.misses <= 5 ? 1 : 0;
         var time = Math.round(game.elapsed * 10) / 10;
 
         me.stars += stars;
