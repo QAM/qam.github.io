@@ -136,6 +136,18 @@
         :root[data-theme="dark"] td.m2 { background: #2d5697; color: #e2ecff; }
         :root[data-theme="dark"] td.m3 { background: #1e6b48; color: #c9f4de; }
         :root[data-theme="dark"] td.m4 { background: #27946a; color: #eafff5; }
+        /* what a finished round did to the mastery grid */
+        .gains { margin-bottom: 1rem; }
+        .gains .head { color: var(--muted); font-size: .85rem; margin-bottom: .4rem; }
+        .gains .chips { display: flex; flex-wrap: wrap; gap: .35rem; justify-content: center; }
+        .gains .chips span {
+            padding: .2rem .5rem; border-radius: 999px; font-size: .82rem; font-weight: 700;
+            border: 1px solid var(--border); background: var(--card);
+            font-variant-numeric: tabular-nums;
+        }
+        .gains .chips span.up { border-color: var(--g-green); color: var(--g-green); }
+        .gains .chips span.down { border-color: var(--g-red); color: var(--g-red); }
+
         .legend { display: flex; flex-wrap: wrap; gap: .8rem; font-size: .82rem; color: var(--muted); }
         .legend i { display: inline-block; width: .9rem; height: .9rem; border-radius: 4px; vertical-align: -1px; margin-right: .3rem; }
 
@@ -162,6 +174,25 @@
         .fact.open .why { display: block; }
         .dots { line-height: 1.15; letter-spacing: .12em; margin-top: .4rem; font-size: 1rem; }
         .dots b { color: var(--g-blue); font-weight: 400; }
+
+        /* practice: the answer is blanked out and typed in */
+        #screen-teach.quiz .skipline { display: none; }
+        .fact.quiz { cursor: default; }
+        .fact .ans {
+            width: 3.4rem; font: inherit; font-weight: 800; text-align: center;
+            padding: .1rem .25rem; border: 2px solid var(--border); border-radius: 8px;
+            background: var(--bg); color: var(--fg); font-variant-numeric: tabular-nums;
+        }
+        .fact .ans:focus { outline: none; border-color: var(--g-blue); }
+        .fact .mark { margin-left: .6rem; font-size: .95rem; font-weight: 700; }
+        .fact.right { border-color: var(--g-green); }
+        .fact.right .ans { border-color: var(--g-green); color: var(--g-green); }
+        .fact.right .mark { color: var(--g-green); }
+        .fact.wrong { border-color: var(--g-red); cursor: pointer; }
+        .fact.wrong .ans { border-color: var(--g-red); color: var(--g-red); }
+        .fact.wrong .mark { color: var(--g-red); }
+        .quiz-score { color: var(--muted); font-size: .9rem; font-weight: 700; }
+        .btn:disabled { opacity: .45; cursor: default; border-color: var(--border); }
 
         /* ---------- shooting range ---------- */
         .hud {
@@ -455,8 +486,13 @@
                 <button class="btn ghost" id="teach-back">Back to menu</button>
             </div>
 
-            <p class="stat" style="color:var(--muted)">Count up, adding one each time:</p>
+            <p class="stat" id="teach-hint" style="color:var(--muted)">Count up, adding one each time:</p>
             <div class="skipline" id="skipline"></div>
+
+            <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:.5rem">
+                <button class="btn ghost" type="button" id="teach-quiz">✍️ Hide the answers — let me try</button>
+                <span class="quiz-score" id="quiz-score" aria-live="polite"></span>
+            </div>
 
             <div class="facts" id="facts"></div>
 
@@ -507,6 +543,7 @@
                 <div class="bigscore" id="result-score"></div>
                 <div class="praise" id="result-praise"></div>
                 <div id="result-detail" style="color:var(--muted);margin-bottom:.6rem"></div>
+                <div id="result-mastery" class="gains"></div>
                 <div id="result-record" class="record" style="margin-bottom:1.2rem"></div>
                 <div class="row" style="justify-content:center">
                     <button class="btn primary" id="again">Play again</button>
@@ -871,11 +908,12 @@
        Shows the whole table for one number: skip-counting strip, then a row
        per fact that opens into repeated addition and a dot array, so the kid
        can see WHY 4×3 is 12 rather than just memorising it.               */
-    var teachTable = A_LO, teachTimer = null;
+    var teachTable = A_LO, teachTimer = null, teachQuiz = false, quizCheered = false;
 
     function openTeach(n) {
         teachTable = n;
         stopTeachPlay();
+        quizCheered = false;
         $('teach-title').textContent = 'The ' + n + ' times table';
 
         var strip = '';
@@ -887,9 +925,21 @@
         var box = $('facts');
         box.innerHTML = '';
         for (var i = B_LO; i <= B_HI; i++) {
-            box.appendChild(buildFactCard(n, i));
+            box.appendChild(teachQuiz ? buildQuizCard(n, i) : buildFactCard(n, i));
         }
+
+        $('screen-teach').classList.toggle('quiz', teachQuiz);
+        $('teach-hint').textContent = teachQuiz
+            ? 'Type each answer. Right turns green — wrong turns red, and after three goes it shows you the number.'
+            : 'Count up, adding one each time:';
+        $('teach-quiz').textContent = teachQuiz
+            ? '👀 Show the answers'
+            : '✍️ Hide the answers — let me try';
+        $('teach-play').disabled = teachQuiz;   // reading it out loud would give the game away
+        renderQuizScore();
+
         showScreen('teach');
+        if (teachQuiz) { var first = box.querySelector('.ans'); if (first) first.focus(); }
     }
 
     function buildFactCard(a, b) {
@@ -919,6 +969,109 @@
             if (!open) { card.classList.add('open'); soundTick(b); }
         });
         return card;
+    }
+
+    /* Practice card: everything but the answer, which the kid types. A right
+       answer goes green and jumps to the next blank; a wrong one goes red and
+       hands the box back for another go. Only when all QUIZ_TRIES goes are
+       spent does the number come out, and even then they can still type it in.
+       Tapping a red card starts that fact over.                            */
+    var QUIZ_TRIES = 3;
+
+    function buildQuizCard(a, b) {
+        var answer = a * b, digits = String(answer).length;
+        var tries = 0, revealed = false;
+        var card = document.createElement('div');
+        card.className = 'fact quiz';
+        card.dataset.step = b;
+        card.innerHTML =
+            '<div class="line">' + a + ' × ' + b + ' = ' +
+            '<input class="ans" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2"' +
+            ' autocomplete="off" aria-label="' + a + ' times ' + b + '">' +
+            '<span class="mark"></span></div>';
+
+        var input = card.querySelector('.ans');
+        var mark = card.querySelector('.mark');
+
+        function clear() {
+            card.classList.remove('right', 'wrong');
+            mark.textContent = '';
+            input.value = '';
+            input.readOnly = false;
+            tries = 0;
+            revealed = false;
+            renderQuizScore();
+        }
+
+        input.addEventListener('input', function () {
+            var raw = input.value.replace(/[^0-9]/g, '');
+            if (raw !== input.value) input.value = raw;
+
+            card.classList.remove('right');
+            // once the answer is out it stays on show, as something to copy from
+            if (!revealed) { card.classList.remove('wrong'); mark.textContent = ''; }
+            if (raw.length < digits) { renderQuizScore(); return; }   // still typing
+
+            if (Number(raw) === answer) {
+                card.classList.remove('wrong');
+                card.classList.add('right');
+                mark.textContent = revealed ? '✓ that is the one' : '✓ right!';
+                input.readOnly = true;
+                soundHit();
+                focusNextBlank(card);
+                renderQuizScore();
+                return;
+            }
+
+            tries++;
+            card.classList.add('wrong');
+            if (tries >= QUIZ_TRIES) {
+                revealed = true;
+                mark.textContent = '✗ ' + raw + ' — it is ' + answer;
+            } else {
+                var goes = QUIZ_TRIES - tries;
+                mark.textContent = '✗ ' + raw + ' — have another go (' +
+                                   goes + (goes === 1 ? ' try' : ' tries') + ' left)';
+            }
+            soundMiss();
+            input.value = '';                 // hand the box back, ready to type again
+            renderQuizScore();
+        });
+
+        input.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') { e.preventDefault(); focusNextBlank(card); }
+        });
+
+        // a red card is a second chance, not a verdict
+        card.addEventListener('click', function () {
+            if (card.classList.contains('wrong')) { clear(); input.focus(); }
+        });
+        return card;
+    }
+
+    function focusNextBlank(card) {
+        var cards = Array.prototype.slice.call($('facts').children);
+        for (var i = cards.indexOf(card) + 1; i < cards.length; i++) {
+            var next = cards[i].querySelector('.ans');
+            if (next && !next.readOnly) { next.focus(); return; }
+        }
+    }
+
+    function renderQuizScore() {
+        if (!teachQuiz) { $('quiz-score').textContent = ''; return; }
+        var box = $('facts');
+        var right = box.querySelectorAll('.fact.right').length;
+        var wrong = box.querySelectorAll('.fact.wrong').length;
+        var left = box.children.length - right - wrong;
+
+        var bits = [right + ' right'];
+        if (wrong) bits.push(wrong + ' wrong');
+        if (left) bits.push(left + ' to go');
+        else if (wrong) bits.push('tap a red one to try again');
+        else bits.push('every one right — brilliant! 🏆');
+        $('quiz-score').textContent = bits.join(' · ');
+
+        if (!left && !wrong && !quizCheered) { quizCheered = true; soundFinish(); }
     }
 
     function litStep(step) {
@@ -1026,7 +1179,7 @@
         game = {
             mode: playMode, opts: opts, facts: facts,
             spawned: 0, resolved: 0, triedThis: 0,
-            hits: 0, misses: 0, score: 0, combo: 0, bestCombo: 0,
+            hits: 0, misses: 0, score: 0, combo: 0, bestCombo: 0, gains: [],
             elapsed: 0, running: true,
             bubbles: [], lastFrame: 0, raf: 0
         };
@@ -1310,6 +1463,17 @@
         // in shooting mode the bubbles are only clickable as a hint target
     }
 
+    /* One fact moves once, when it is finally answered: straight away is a step
+       forward, right after one slip holds the ground it had, and needing more
+       than that steps back. Answering correctly never costs mastery.       */
+    function scoreFact(a, b, tries) {
+        var before = levelOf(me, a, b);
+        var delta = tries === 0 ? 1 : tries === 1 ? 0 : -1;
+        var after = Math.max(0, Math.min(5, before + delta));
+        setLevel(me, a, b, after);
+        game.gains.push([a, b, after - before]);
+    }
+
     function resolveEasy(t) {
         var fact = game.asking;
         var answer = fact[0] * fact[1];
@@ -1318,8 +1482,8 @@
             game.misses++;
             game.triedThis++;
             game.combo = 0;
+            me.asked++;                      // a wrong pick is still an attempt
             $('hud-combo').textContent = '';
-            if (game.triedThis === 1) setLevel(me, fact[0], fact[1], Math.max(0, levelOf(me, fact[0], fact[1]) - 1));
 
             detach(t);
             fireBullet(t, function () { shotDownWrong(t); });
@@ -1337,7 +1501,7 @@
 
         me.asked++;
         me.correct++;
-        if (game.triedThis === 0) setLevel(me, fact[0], fact[1], Math.min(5, levelOf(me, fact[0], fact[1]) + 1));
+        scoreFact(fact[0], fact[1], game.triedThis);
 
         detach(t);
         fireBullet(t, function () { explode(t, points); });
@@ -1412,6 +1576,7 @@
     function wildShot(guess) {
         game.misses++;
         game.combo = 0;
+        me.asked++;                          // no telling which plane was meant, but it was a try
         $('hud-combo').textContent = '';
         $('aim').classList.add('bad');
         setTimeout(function () { $('aim').classList.remove('bad'); }, 320);
@@ -1430,7 +1595,7 @@
 
         me.asked++;
         me.correct++;
-        setLevel(me, t.a, t.b, Math.min(5, levelOf(me, t.a, t.b) + 1));
+        scoreFact(t.a, t.b, 0);
 
         detach(t);
         fireBullet(t, function () { explode(t, points); });
@@ -1496,6 +1661,8 @@
             ' · ' + game.misses + (game.misses === 1 ? ' slip' : ' slips') +
             (game.bestCombo >= 2 ? ' · best streak ' + game.bestCombo : '');
 
+        renderGains();
+
         var records = [];
         if (newBestScore) records.push('🎉 New high score!');
         if (newBestTime) records.push('⚡️ Fastest round yet — ' + time + 's!');
@@ -1505,6 +1672,35 @@
         showScreen('result');
     }
 
+
+    // the grid on the menu is where progress lives, so say what just moved in it
+    function renderGains() {
+        var net = {}, order = [];
+        game.gains.forEach(function (g) {
+            var key = g[0] + '×' + g[1];
+            if (!(key in net)) { net[key] = 0; order.push(key); }
+            net[key] += g[2];
+        });
+
+        var chips = '', up = 0, down = 0;
+        order.forEach(function (key) {
+            if (!net[key]) return;
+            if (net[key] > 0) { up++; chips += '<span class="up">' + key + ' ⬆</span>'; }
+            else { down++; chips += '<span class="down">' + key + ' ⬇</span>'; }
+        });
+
+        if (!chips) {
+            $('result-mastery').innerHTML =
+                '<div class="head">Nothing moved on the table this time — one clean answer moves a square up.</div>';
+            return;
+        }
+        var head = [];
+        if (up) head.push(up + (up === 1 ? ' square' : ' squares') + ' stronger');
+        if (down) head.push(down + ' to look at again');
+        $('result-mastery').innerHTML =
+            '<div class="head">On your table: ' + head.join(' · ') + '</div>' +
+            '<div class="chips">' + chips + '</div>';
+    }
 
     /* ================== wiring ================== */
     $('create-player').addEventListener('click', createPlayer);
@@ -1544,6 +1740,11 @@
     });
     $('teach-play').addEventListener('click', function () {
         if (teachTimer) stopTeachPlay(); else startTeachPlay();
+    });
+    $('teach-quiz').addEventListener('click', function () {
+        teachQuiz = !teachQuiz;
+        stopTeachPlay();
+        openTeach(teachTable);
     });
     $('teach-to-game').addEventListener('click', function () {
         stopTeachPlay(); startRound({ table: teachTable });
