@@ -15,6 +15,9 @@
             --g-purple: #8b5cf6;
         }
 
+        /* author display rules beat the UA's [hidden], so make hidden win outright */
+        [hidden] { display: none !important; }
+
         .game { max-width: 46rem; margin: 0 auto; }
         .screen { display: none; }
         .screen.active { display: block; animation: fade .25s ease; }
@@ -86,6 +89,7 @@
         .mode b { display: block; font-size: 1.05rem; margin-bottom: .2rem; }
         .mode span { color: var(--muted); font-size: .85rem; }
         .mode:disabled { opacity: .45; cursor: not-allowed; }
+        .mode[aria-pressed="true"] { border-color: var(--g-purple); background: var(--bg); box-shadow: inset 0 0 0 1px var(--g-purple); }
 
         .tables { display: flex; flex-wrap: wrap; gap: .45rem; margin-top: .6rem; }
         .tables button {
@@ -188,6 +192,7 @@
             background: var(--g-red); color: #fff; border: 3px solid #fff;
             font-size: 1.45rem; font-weight: 800; font-variant-numeric: tabular-nums;
             box-shadow: 0 3px 10px rgba(0,0,0,.28); white-space: nowrap;
+            cursor: pointer; user-select: none;
         }
         .target.hurt { animation: shake .3s ease; background: #b23f36; }
         @keyframes shake { 25% { transform: translate(-54%, -50%); } 75% { transform: translate(-46%, -50%); } }
@@ -204,6 +209,23 @@
             animation: fly .9s ease forwards; pointer-events: none;
         }
         @keyframes fly { from { opacity: 1; } to { opacity: 0; transform: translate(-50%,-190%); } }
+
+        .ask {
+            text-align: center; font-size: clamp(1.8rem, 6vw, 2.6rem); font-weight: 800;
+            font-variant-numeric: tabular-nums; margin: .2rem 0 .6rem; letter-spacing: .02em;
+        }
+
+        .target.option { width: 5.6rem; height: 4.2rem; gap: .4rem; }
+        .target .pick {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 1.5rem; height: 1.5rem; border-radius: 50%; flex: none;
+            background: #fff; color: var(--g-red); font-size: .95rem; font-weight: 800;
+        }
+        .target.gone { animation: gone .35s ease forwards; pointer-events: none; }
+        @keyframes gone { to { opacity: 0; transform: translate(-50%, -50%) scale(.4); } }
+
+        .aim-easy { text-align: center; font-size: 1.05rem; color: var(--muted); margin: 1rem 0 .5rem; }
+        .aim-easy b { color: var(--fg); }
 
         .aim { display: flex; gap: .6rem; align-items: center; justify-content: center; margin: 1rem 0 .5rem; }
         #shot {
@@ -297,16 +319,27 @@
             <p class="stat" style="color:var(--muted);margin:.2rem 0">Pick a number and take its table one step at a time.</p>
             <div class="tables" id="teach-pick"></div>
 
-            <h2>🎯 Now shoot!</h2>
-            <div class="modes">
-                <button class="mode" id="mode-mixed">
-                    <b>Mixed targets</b><span>10 targets, anything from 2×1 to 9×9</span>
+            <h2>🎯 Now play!</h2>
+            <p class="stat" style="color:var(--muted);margin:.2rem 0 .6rem">First, how do you want to answer?</p>
+            <div class="modes" id="play-mode">
+                <button class="mode" type="button" data-play="easy">
+                    <b>🟢 Easy</b><span>Five answers float by — press 1&ndash;5 to pop the right one</span>
                 </button>
-                <button class="mode" id="mode-weak">
-                    <b>Weak spots</b><span>10 targets, the ones you keep missing</span>
+                <button class="mode" type="button" data-play="hard">
+                    <b>🔴 Shooting</b><span>Work it out and type the answer yourself</span>
                 </button>
             </div>
-            <p class="stat" style="color:var(--muted);margin:.8rem 0 .2rem">Or shoot just one table:</p>
+
+            <p class="stat" style="color:var(--muted);margin:1rem 0 .2rem">Then, what do you want to practise?</p>
+            <div class="modes">
+                <button class="mode" id="mode-mixed">
+                    <b>Mixed</b><span>10 questions, anything from 2×1 to 9×9</span>
+                </button>
+                <button class="mode" id="mode-weak">
+                    <b>Weak spots</b><span>10 questions, the ones you keep missing</span>
+                </button>
+            </div>
+            <p class="stat" style="color:var(--muted);margin:.8rem 0 .2rem">Or just one table:</p>
             <div class="tables" id="shoot-pick"></div>
         </section>
 
@@ -336,12 +369,20 @@
                 <div>⭐ <span id="hud-score">0</span> <span class="combo" id="hud-combo"></span></div>
             </div>
 
+            <div class="ask" id="ask" hidden></div>
+
             <div id="field"><div class="ground"></div></div>
 
             <div class="aim" id="aim">
-                <input id="shot" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3"
+                <input id="shot" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2"
                        autocomplete="off" aria-label="Answer">
                 <button class="btn primary fire" id="fire">Fire!</button>
+            </div>
+            <div class="aim-easy" id="aim-easy" hidden>
+                Press <b>1</b> &ndash; <b>5</b> to pop the bubble with the right answer
+            </div>
+            <div class="aim-easy" id="aim-hint" hidden>
+                Just type the answer &mdash; it fires as soon as it matches a bubble
             </div>
             <div class="shot-msg" id="shot-msg" aria-live="polite"></div>
 
@@ -379,7 +420,8 @@
        plus a small index cookie listing the ids.                        */
     var YEAR = 60 * 60 * 24 * 365;
     var K_IDS = 'mt_ids', K_LAST = 'mt_last', K_SOUND = 'mt_sound', K_PLAYER = 'mt_p_';
-    var SCHEMA = 2;
+    var K_MODE = 'mt_play';
+    var SCHEMA = 3;
 
     function setCookie(key, value, seconds) {
         document.cookie = key + '=' + encodeURIComponent(value) +
@@ -434,7 +476,8 @@
         var raw = getCookie(K_PLAYER + id), d;
         if (!raw) return null;
         try { d = JSON.parse(raw); } catch (e) { return null; }
-        var mastery = (d.v === SCHEMA && typeof d.m === 'string') ? d.m : blankMastery();
+        var current = d.v === SCHEMA;
+        var mastery = (current && typeof d.m === 'string') ? d.m : blankMastery();
         while (mastery.length < FACTS) mastery += '0';
         return {
             id: id,
@@ -447,7 +490,7 @@
             asked: d.t || 0,
             bestScore: d.bs || 0,
             bestTime: d.bt || 0,     // seconds, only set on a clean 10/10 run
-            history: Array.isArray(d.h) ? d.h : []
+            history: (current && Array.isArray(d.h)) ? d.h : []
         };
     }
     function savePlayer(p) {
@@ -475,7 +518,7 @@
     var HISTORY_MAX = 10;
 
     function addHistory(p, entry) {
-        p.history.unshift([entry.mode, entry.hits, entry.time, entry.score, entry.stars]);
+        p.history.unshift([entry.mode, entry.misses, entry.time, entry.score, entry.stars]);
         p.history = p.history.slice(0, HISTORY_MAX);
     }
 
@@ -636,8 +679,15 @@
         $('menu-stat').textContent = bits.join(' · ');
         renderHistory();
         renderMastery();
+        renderPlayMode();
         $('mode-weak').disabled = me.asked < 10;
         $('sound-toggle').textContent = soundOn ? '🔊' : '🔇';
+    }
+
+    function renderPlayMode() {
+        Array.prototype.forEach.call($('play-mode').children, function (b) {
+            b.setAttribute('aria-pressed', b.dataset.play === playMode ? 'true' : 'false');
+        });
     }
 
     function renderHistory() {
@@ -660,13 +710,13 @@
         var best = 0;
         me.history.forEach(function (h) { best = Math.max(best, h[3]); });
 
-        var html = '<tr><th>#</th><th>Mode</th><th>Hits</th><th>Time</th><th>Score</th><th>Stars</th></tr>';
+        var html = '<tr><th>#</th><th>Mode</th><th>Slips</th><th>Time</th><th>Score</th><th>Stars</th></tr>';
         me.history.forEach(function (h, i) {
-            var mode = h[0], hits = h[1], time = h[2], score = h[3], stars = h[4];
+            var mode = h[0], misses = h[1], time = h[2], score = h[3], stars = h[4];
             html += '<tr' + (score === best ? ' class="best"' : '') + '>' +
                 '<td>' + (me.history.length - i) + '</td>' +
                 '<td>' + mode + '</td>' +
-                '<td>' + hits + '/' + ROUND_LEN + '</td>' +
+                '<td>' + misses + '</td>' +
                 '<td>' + time.toFixed(1) + 's</td>' +
                 '<td>' + score + '</td>' +
                 '<td class="stars">' + (new Array(stars + 1).join('⭐') || '—') + '</td>' +
@@ -790,17 +840,23 @@
         }, 1500);
     }
 
-    /* ================== shooting range ==================
-       Several targets drift at once, each carrying its own question. The kid
-       types an answer and presses Enter, and it takes down whichever bubble
-       that answer belongs to — the one nearest escaping if two of them match.
-       A bubble that reaches the far side gets away and costs mastery. The
-       clock runs until all ten have been resolved one way or the other.    */
+    /* ================== the play field ==================
+       Bubbles bounce around inside the field and off each other. Nothing ever
+       leaves on its own, so a question stays up until it is answered.
+
+       Two ways to play:
+         easy — one question is asked and five answers float, numbered 1-5.
+                Press a number to pop that bubble. A wrong pick removes that
+                option and costs mastery, since we know which fact was meant.
+         hard — three questions float at once. Type the answer and press Enter,
+                and it pops whichever bubble that answer belongs to. An answer
+                matching nothing is a wild shot: it breaks the streak but costs
+                no mastery, because there is no telling which one was meant.  */
     var ROUND_LEN = 10;
-    var MAX_ON_SCREEN = 3;
-    var ESCAPE_SECONDS = 14;
-    var LANES = [20, 45, 70];          // % from the top, one bubble each
+    var HARD_BUBBLES = 3;
+    var EASY_OPTIONS = 5;
     var game = null;
+    var playMode = getCookie(K_MODE) === 'hard' ? 'hard' : 'easy';
 
     function pickFact(table) {
         var pool = [];
@@ -824,6 +880,32 @@
         return facts.slice(0, count).map(function (f) { return [f.a, f.b]; });
     }
 
+    // plausible near-misses, so the wrong options are tempting rather than silly
+    function buildOptions(a, b, count) {
+        var answer = a * b;
+        var seen = {}, wrong = [];
+        var candidates = [
+            a * (b + 1), a * (b - 1), (a + 1) * b, (a - 1) * b,
+            answer + 1, answer - 1, answer + a, answer - a, answer + b, answer - b,
+            answer + 10, answer - 10
+        ];
+        shuffle(candidates);
+        candidates.forEach(function (c) {
+            if (wrong.length >= count - 1) return;
+            if (c === answer || c < 1 || c > 99 || seen[c]) return;
+            seen[c] = true;
+            wrong.push(c);
+        });
+        var filler = 2;
+        while (wrong.length < count - 1) {
+            if (filler !== answer && !seen[filler]) { seen[filler] = true; wrong.push(filler); }
+            filler++;
+        }
+        return shuffle(wrong.concat([answer]));
+    }
+
+    /* ---------- round lifecycle ---------- */
+
     function startRound(opts) {
         var facts = [];
         if (opts.weak) {
@@ -833,64 +915,124 @@
         }
 
         game = {
-            opts: opts, facts: facts,
-            spawned: 0, resolved: 0,
-            hits: 0, score: 0, combo: 0, bestCombo: 0, wildShots: 0,
-            missed: [], elapsed: 0, running: true,
-            targets: [], lastFrame: 0, raf: 0
+            mode: playMode, opts: opts, facts: facts,
+            spawned: 0, resolved: 0, triedThis: 0,
+            hits: 0, misses: 0, score: 0, combo: 0, bestCombo: 0,
+            elapsed: 0, running: true,
+            bubbles: [], lastFrame: 0, raf: 0
         };
 
-        Array.prototype.slice.call($('field').querySelectorAll('.target, .boom, .flyscore'))
-            .forEach(function (el) { el.remove(); });
-
+        clearField();
+        clearTyping();
         $('shot-msg').textContent = '';
         $('hud-score').textContent = '0';
         $('hud-combo').textContent = '';
-        $('shot').value = '';
+
+        var easy = game.mode === 'easy';
+        $('ask').hidden = !easy;
+        $('aim').hidden = easy;
+        $('aim-easy').hidden = !easy;
+        $('aim-hint').hidden = easy;
+
         updateProgress();
         showScreen('shoot');
-        fillField();
-        focusShot();
+
+        if (easy) askNext();
+        else { fillField(); focusShot(); }
+
         game.lastFrame = 0;
         game.raf = requestAnimationFrame(tick);
+    }
+
+    function clearField() {
+        Array.prototype.slice.call($('field').querySelectorAll('.target, .boom, .flyscore'))
+            .forEach(function (el) { el.remove(); });
+        if (game) game.bubbles = [];
     }
 
     function updateProgress() {
         $('hud-progress').textContent = game.resolved + ' / ' + ROUND_LEN;
     }
 
-    // keep the field topped up, one bubble per free lane so they never overlap
-    function fillField() {
-        while (game.targets.length < MAX_ON_SCREEN && game.spawned < game.facts.length) {
-            var used = game.targets.map(function (t) { return t.lane; });
-            var open = [];
-            for (var i = 0; i < LANES.length; i++) if (used.indexOf(i) === -1) open.push(i);
-            if (!open.length) return;
-            spawnTarget(game.facts[game.spawned++], open[Math.floor(Math.random() * open.length)]);
-        }
+    /* ---------- bubbles ---------- */
+
+    function fieldBox() {
+        var el = $('field');
+        var ground = el.querySelector('.ground');
+        return {
+            w: el.clientWidth,
+            h: el.clientHeight - (ground ? ground.offsetHeight : 0)
+        };
     }
 
-    function spawnTarget(fact, lane) {
+    function addBubble(html, data) {
+        var box = fieldBox();
         var el = document.createElement('div');
-        el.className = 'target';
-        el.textContent = fact[0] + ' × ' + fact[1];
-
-        var leftToRight = Math.random() < 0.5;
-        var t = {
-            a: fact[0], b: fact[1], el: el, lane: lane,
-            x: leftToRight ? 8 : 92,
-            dir: leftToRight ? 1 : -1,
-            y: LANES[lane],
-            bob: Math.random() * 6.28
-        };
-        game.targets.push(t);
-        place(t);
+        el.className = 'target' + (data.option ? ' option' : '');
+        el.innerHTML = html;
         $('field').appendChild(el);
+
+        var hw = el.offsetWidth / 2, hh = el.offsetHeight / 2;
+        var speed = 55 + Math.random() * 45;
+        var angle = (Math.random() * 0.7 + 0.25) * Math.PI * (Math.random() < 0.5 ? 1 : -1);
+
+        var t = {
+            a: data.a, b: data.b, value: data.value, index: data.index, el: el,
+            hw: hw, hh: hh, r: Math.max(hw, hh) * 0.92,
+            x: hw + Math.random() * Math.max(1, box.w - hw * 2),
+            y: hh + Math.random() * Math.max(1, box.h - hh * 2),
+            vx: Math.cos(angle) * speed * (Math.random() < 0.5 ? 1 : -1),
+            vy: Math.sin(angle) * speed
+        };
+        // nudge apart from anything it landed on top of
+        game.bubbles.forEach(function (o) { separate(t, o); });
+        game.bubbles.push(t);
+        place(t);
+
+        el.addEventListener('click', function () { chooseBubble(t); });
+        return t;
     }
 
     function place(t) {
-        t.el.style.left = t.x + '%';
-        t.el.style.top = (t.y + Math.sin(t.bob) * 3.5) + '%';
+        t.el.style.left = t.x + 'px';
+        t.el.style.top = t.y + 'px';
+    }
+
+    function separate(a, b) {
+        var dx = b.x - a.x, dy = b.y - a.y;
+        var dist = Math.sqrt(dx * dx + dy * dy) || 0.01;
+        var min = a.r + b.r;
+        if (dist >= min) return;
+
+        var nx = dx / dist, ny = dy / dist, push = (min - dist) / 2;
+        a.x -= nx * push; a.y -= ny * push;
+        b.x += nx * push; b.y += ny * push;
+
+        // equal masses: swap the velocity component along the line of contact
+        var an = a.vx * nx + a.vy * ny, bn = b.vx * nx + b.vy * ny;
+        if (an - bn <= 0) return;              // already separating
+        a.vx += (bn - an) * nx; a.vy += (bn - an) * ny;
+        b.vx += (an - bn) * nx; b.vy += (an - bn) * ny;
+    }
+
+    function step(dt) {
+        var box = fieldBox();
+        var bs = game.bubbles, i, j;
+
+        for (i = 0; i < bs.length; i++) {
+            var t = bs[i];
+            t.x += t.vx * dt;
+            t.y += t.vy * dt;
+
+            if (t.x - t.hw < 0)     { t.x = t.hw;         t.vx = Math.abs(t.vx); }
+            if (t.x + t.hw > box.w) { t.x = box.w - t.hw; t.vx = -Math.abs(t.vx); }
+            if (t.y - t.hh < 0)     { t.y = t.hh;         t.vy = Math.abs(t.vy); }
+            if (t.y + t.hh > box.h) { t.y = box.h - t.hh; t.vy = -Math.abs(t.vy); }
+        }
+        for (i = 0; i < bs.length; i++) {
+            for (j = i + 1; j < bs.length; j++) separate(bs[i], bs[j]);
+        }
+        for (i = 0; i < bs.length; i++) place(bs[i]);
     }
 
     function tick(now) {
@@ -901,57 +1043,160 @@
 
         game.elapsed += dt;
         $('hud-clock').textContent = game.elapsed.toFixed(1) + 's';
+        step(dt);
 
-        for (var i = game.targets.length - 1; i >= 0; i--) {
-            var t = game.targets[i];
-            t.x += t.dir * (100 / ESCAPE_SECONDS) * dt;
-            t.bob += dt * 2.2;
-            place(t);
-            if ((t.dir > 0 && t.x > 108) || (t.dir < 0 && t.x < -8)) escapeTarget(t);
-        }
-        if (game.running) game.raf = requestAnimationFrame(tick);
-    }
-
-    function fieldPoint(t) {
-        // percent -> px, so the boom and score float where the bubble actually was
-        var box = $('field').getBoundingClientRect();
-        return { x: box.width * t.x / 100, y: box.height * t.y / 100 };
+        game.raf = requestAnimationFrame(tick);
     }
 
     function spawnEffect(cls, text, t) {
-        var p = fieldPoint(t);
         var el = document.createElement('div');
         el.className = cls;
         el.textContent = text;
-        el.style.left = p.x + 'px';
-        el.style.top = p.y + 'px';
+        el.style.left = t.x + 'px';
+        el.style.top = t.y + 'px';
         $('field').appendChild(el);
         setTimeout(function () { el.remove(); }, 950);
     }
 
-    function fire() {
+    function removeBubble(t) {
+        t.el.remove();
+        var i = game.bubbles.indexOf(t);
+        if (i > -1) game.bubbles.splice(i, 1);
+    }
+
+    /* ---------- easy mode: five answers, press 1-5 ---------- */
+
+    function askNext() {
+        game.triedThis = 0;
+        clearField();
+
+        var fact = game.facts[game.spawned++];
+        game.asking = fact;
+        $('ask').textContent = fact[0] + ' × ' + fact[1] + ' = ?';
+
+        buildOptions(fact[0], fact[1], EASY_OPTIONS).forEach(function (value, i) {
+            addBubble('<span class="pick">' + (i + 1) + '</span>' + value,
+                      { a: fact[0], b: fact[1], value: value, index: i + 1, option: true });
+        });
+    }
+
+    function pickOption(index) {
+        if (!game || !game.running || game.mode !== 'easy') return;
+        for (var i = 0; i < game.bubbles.length; i++) {
+            if (game.bubbles[i].index === index) { chooseBubble(game.bubbles[i]); return; }
+        }
+    }
+
+    function chooseBubble(t) {
         if (!game || !game.running) return;
-        var raw = $('shot').value.trim();
+        if (game.mode === 'easy') resolveEasy(t);
+        // in shooting mode the bubbles are only clickable as a hint target
+    }
+
+    function resolveEasy(t) {
+        var fact = game.asking;
+        var answer = fact[0] * fact[1];
+
+        if (t.value !== answer) {
+            game.misses++;
+            game.triedThis++;
+            game.combo = 0;
+            $('hud-combo').textContent = '';
+            if (game.triedThis === 1) setLevel(me, fact[0], fact[1], Math.max(0, levelOf(me, fact[0], fact[1]) - 1));
+
+            t.el.classList.add('gone');
+            removeBubble(t);
+            soundMiss();
+            $('shot-msg').textContent = t.value + ' is not it — try another bubble';
+            return;
+        }
+
+        game.hits++;
+        game.resolved++;
+        game.combo++;
+        game.bestCombo = Math.max(game.bestCombo, game.combo);
+
+        var points = Math.max(20, 100 - game.triedThis * 30) + (game.combo >= 2 ? game.combo * 10 : 0);
+        game.score += points;
+
+        me.asked++;
+        me.correct++;
+        if (game.triedThis === 0) setLevel(me, fact[0], fact[1], Math.min(5, levelOf(me, fact[0], fact[1]) + 1));
+
+        spawnEffect('boom', '💥', t);
+        spawnEffect('flyscore', '+' + points, t);
+        removeBubble(t);
+        soundHit();
+
+        $('hud-score').textContent = game.score;
+        $('hud-combo').textContent = game.combo >= 2 ? '🔥 ×' + game.combo : '';
+        $('shot-msg').textContent = fact[0] + ' × ' + fact[1] + ' = ' + answer + '   ' +
+            ['Hit!', 'Nice shot!', 'Great!', 'Bullseye!'][Math.floor(Math.random() * 4)];
+        updateProgress();
+
+        if (game.resolved >= ROUND_LEN) { finishRound(); return; }
+        setTimeout(function () {
+            if (game && game.running) { $('shot-msg').textContent = ''; askNext(); }
+        }, 550);
+    }
+
+    /* ---------- shooting mode: three questions, type the answer ---------- */
+
+    function fillField() {
+        while (game.bubbles.length < HARD_BUBBLES && game.spawned < game.facts.length) {
+            var fact = game.facts[game.spawned++];
+            addBubble(fact[0] + ' × ' + fact[1], { a: fact[0], b: fact[1], value: fact[0] * fact[1] });
+        }
+    }
+
+    function clearTyping() {
         $('shot').value = '';
+    }
+
+    /* Fires the moment the digits typed so far are exactly a bubble's answer,
+       so there is no Enter to press. An exact match always wins immediately:
+       type 8 while both 8 and 81 are floating and the 8 goes down. Digits that
+       are only the start of some answer wait for the next keystroke; digits
+       that can never become one are a wild shot straight away. */
+    function onTyping() {
+        if (!game || !game.running || game.mode !== 'hard') return;
+
+        var raw = $('shot').value.replace(/[^0-9]/g, '');
+        if (raw !== $('shot').value) $('shot').value = raw;
+        if (!raw) return;
+
+        var exact = null, longer = false;
+        game.bubbles.forEach(function (t) {
+            var v = String(t.value);
+            if (v === raw) { if (!exact) exact = t; }
+            else if (v.length > raw.length && v.indexOf(raw) === 0) longer = true;
+        });
+
+        if (exact) { clearTyping(); hitBubble(exact); return; }
+        if (longer) return;                // still on the way to something real
+        clearTyping();
+        wildShot(Number(raw));
+    }
+
+    // kept for the Fire button and anyone who presses Enter out of habit
+    function fire() {
+        if (!game || !game.running || game.mode !== 'hard') return;
+        var raw = $('shot').value.trim();
+        clearTyping();
         if (!raw) return;
         var guess = parseInt(raw, 10);
         if (isNaN(guess)) return;
 
-        // if two bubbles share an answer, take the one closest to getting away
-        var match = null, best = -1;
-        game.targets.forEach(function (t) {
-            if (t.a * t.b !== guess) return;
-            var travelled = t.dir > 0 ? t.x : 100 - t.x;
-            if (travelled > best) { best = travelled; match = t; }
-        });
+        var match = null;
+        game.bubbles.forEach(function (t) { if (t.value === guess && !match) match = t; });
 
-        if (match) hitTarget(match);
+        if (match) hitBubble(match);
         else wildShot(guess);
         focusShot();
     }
 
     function wildShot(guess) {
-        game.wildShots++;
+        game.misses++;
         game.combo = 0;
         $('hud-combo').textContent = '';
         $('aim').classList.add('bad');
@@ -960,7 +1205,7 @@
         $('shot-msg').textContent = 'No bubble makes ' + guess + ' — look again!';
     }
 
-    function hitTarget(t) {
+    function hitBubble(t) {
         game.hits++;
         game.resolved++;
         game.combo++;
@@ -975,65 +1220,42 @@
 
         spawnEffect('boom', '💥', t);
         spawnEffect('flyscore', '+' + points, t);
-        removeTarget(t);
+        removeBubble(t);
         soundHit();
 
         $('hud-score').textContent = game.score;
         $('hud-combo').textContent = game.combo >= 2 ? '🔥 ×' + game.combo : '';
-        $('shot-msg').textContent = t.a + ' × ' + t.b + ' = ' + (t.a * t.b) + '   ' +
+        $('shot-msg').textContent = t.a + ' × ' + t.b + ' = ' + t.value + '   ' +
             ['Hit!', 'Nice shot!', 'Great!', 'Bullseye!'][Math.floor(Math.random() * 4)];
         updateProgress();
-        afterResolve();
-    }
 
-    function escapeTarget(t) {
-        game.resolved++;
-        game.missed.push(t.a + '×' + t.b + '=' + (t.a * t.b));
-        me.asked++;
-        setLevel(me, t.a, t.b, Math.max(0, levelOf(me, t.a, t.b) - 1));
-        game.combo = 0;
-
-        $('hud-combo').textContent = '';
-        removeTarget(t);
-        soundEscape();
-        $('shot-msg').textContent = 'It got away!   ' + t.a + ' × ' + t.b + ' = ' + (t.a * t.b);
-        updateProgress();
-        afterResolve();
-    }
-
-    function removeTarget(t) {
-        t.el.remove();
-        var i = game.targets.indexOf(t);
-        if (i > -1) game.targets.splice(i, 1);
-    }
-
-    function afterResolve() {
         if (game.resolved >= ROUND_LEN) finishRound();
         else fillField();
     }
+
+    /* ---------- finishing ---------- */
 
     function stopGame() {
         if (!game) return;
         game.running = false;
         if (game.raf) cancelAnimationFrame(game.raf);
-        game.targets.forEach(function (t) { t.el.remove(); });
-        game.targets = [];
+        clearField();
     }
 
     function focusShot() {
         try { $('shot').focus({ preventScroll: true }); } catch (e) { $('shot').focus(); }
     }
 
-    function modeLabel(opts) {
-        if (opts.weak) return 'Weak spots';
-        if (opts.table) return opts.table + '× table';
-        return 'Mixed';
+    function modeLabel(g) {
+        var what = g.opts.weak ? 'Weak spots' : g.opts.table ? g.opts.table + '× table' : 'Mixed';
+        return (g.mode === 'easy' ? 'Easy' : 'Shooting') + ' · ' + what;
     }
 
     function finishRound() {
         stopGame();
 
-        var stars = game.hits >= 10 ? 3 : game.hits >= 8 ? 2 : game.hits >= 6 ? 1 : 0;
+        // every bubble gets answered eventually, so the score is about how few slips it took
+        var stars = game.misses === 0 ? 3 : game.misses <= 2 ? 2 : game.misses <= 5 ? 1 : 0;
         var time = Math.round(game.elapsed * 10) / 10;
 
         me.stars += stars;
@@ -1042,35 +1264,29 @@
         var newBestScore = game.score > me.bestScore;
         if (newBestScore) me.bestScore = game.score;
 
-        var newBestTime = game.hits === ROUND_LEN && (!me.bestTime || time < me.bestTime);
+        var newBestTime = !me.bestTime || time < me.bestTime;
         if (newBestTime) me.bestTime = time;
 
-        addHistory(me, {
-            mode: modeLabel(game.opts),
-            hits: game.hits,
-            time: time,
-            score: game.score,
-            stars: stars
-        });
+        addHistory(me, { mode: modeLabel(game), misses: game.misses, time: time,
+                         score: game.score, stars: stars });
         savePlayer(me);
 
         $('result-stars').textContent =
             new Array(stars + 1).join('⭐') + new Array(4 - stars).join('☆');
         $('result-score').textContent = game.score + ' points';
         $('result-praise').textContent =
-            game.hits >= 10 ? 'Every bubble down — sharpshooter! 🏆' :
-            game.hits >= 8 ? 'Great aim, nearly perfect!' :
-            game.hits >= 6 ? 'Good going — a few more rounds!' :
+            game.misses === 0 ? 'Not a single slip — sharpshooter! 🏆' :
+            game.misses <= 2 ? 'Great aim, nearly perfect!' :
+            game.misses <= 5 ? 'Good going — a few more rounds!' :
             'No rush — go look at the table again 💪';
         $('result-detail').textContent =
-            'Hit ' + game.hits + '/' + ROUND_LEN + ' in ' + time + 's' +
-            (game.bestCombo >= 2 ? ' · best streak ' + game.bestCombo : '') +
-            (game.wildShots ? ' · ' + game.wildShots + ' wild shot' + (game.wildShots === 1 ? '' : 's') : '') +
-            (game.missed.length ? '    Got away: ' + game.missed.join(', ') : '');
+            'Cleared all ' + ROUND_LEN + ' in ' + time + 's' +
+            ' · ' + game.misses + (game.misses === 1 ? ' slip' : ' slips') +
+            (game.bestCombo >= 2 ? ' · best streak ' + game.bestCombo : '');
 
         var records = [];
         if (newBestScore) records.push('🎉 New high score!');
-        if (newBestTime) records.push('⚡️ New record — all 10 in ' + time + 's!');
+        if (newBestTime) records.push('⚡️ Fastest round yet — ' + time + 's!');
         $('result-record').textContent = records.join('   ');
 
         soundFinish();
@@ -1121,14 +1337,20 @@
         stopTeachPlay(); startRound({ table: teachTable });
     });
 
+    Array.prototype.forEach.call($('play-mode').children, function (btn) {
+        btn.addEventListener('click', function () {
+            playMode = btn.dataset.play;
+            setCookie(K_MODE, playMode);
+            renderPlayMode();
+        });
+    });
+
     $('mode-mixed').addEventListener('click', function () { startRound({}); });
     $('mode-weak').addEventListener('click', function () { startRound({ weak: true }); });
 
     $('fire').addEventListener('click', fire);
     $('shot').addEventListener('keydown', function (e) { if (e.key === 'Enter') fire(); });
-    $('shot').addEventListener('input', function () {
-        $('shot').value = $('shot').value.replace(/[^0-9]/g, '');
-    });
+    $('shot').addEventListener('input', onTyping);
     $('quit-shoot').addEventListener('click', function () {
         stopGame(); savePlayer(me); renderMenu(); showScreen('menu');
     });
@@ -1136,14 +1358,21 @@
     $('again').addEventListener('click', function () { startRound(game.opts); });
     $('back-menu').addEventListener('click', function () { renderMenu(); showScreen('menu'); });
 
-    // typing anywhere on the shooting screen goes to the answer box
     document.addEventListener('keydown', function (e) {
         if (!$('screen-shoot').classList.contains('active')) return;
+        if (!game || !game.running) return;
+
+        if (game.mode === 'easy') {
+            if (/^[1-5]$/.test(e.key)) { e.preventDefault(); pickOption(Number(e.key)); }
+            return;
+        }
+        // shooting mode: typing anywhere goes into the answer box
         if (document.activeElement === $('shot')) return;
         if (e.key === 'Enter') { fire(); return; }
-        if (/^[0-9]$/.test(e.key) && $('shot').value.length < 3) {
+        if (/^[0-9]$/.test(e.key) && $('shot').value.length < 2) {
             $('shot').value += e.key;
             focusShot();
+            onTyping();                 // typed outside the box, so fire the check ourselves
         }
     });
 
