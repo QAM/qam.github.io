@@ -107,6 +107,7 @@
         table.history th { color: var(--muted); font-weight: 600; font-size: .82rem; }
         table.history td.stars { letter-spacing: .05em; }
         table.history tr.best td { color: var(--g-gold); font-weight: 700; }
+        table.history td.more { color: var(--muted); font-size: .82rem; }
         .history-empty { color: var(--muted); font-size: .9rem; margin: .2rem 0 0; }
 
         /* ---------- mastery grid ---------- */
@@ -399,9 +400,9 @@
     </header>
 
     <div class="game">
-        <div id="cookie-warning" class="notice" hidden>
-            Cookies are blocked, so progress will not be saved.<br>
-            <span class="muted">If you opened this file directly, serve it over http instead.</span>
+        <div id="storage-warning" class="notice" hidden>
+            This browser is not letting the page save anything, so progress will be lost when you leave.<br>
+            <span class="muted">Private browsing usually does this. If you opened the file directly, serve it over http instead.</span>
         </div>
 
         <!-- ============ players ============ -->
@@ -561,20 +562,54 @@
 (function () {
     'use strict';
 
-    /* ================== cookie storage ==================
-       One cookie per player, so each profile gets its own ~4KB budget,
-       plus a small index cookie listing the ids.                        */
-    var YEAR = 60 * 60 * 24 * 365;
+    /* ================== storage ==================
+       One localStorage entry per player, plus a small index listing the ids.
+       Profiles used to live in cookies, which held about 4KB each and rode
+       along on every request to the server. Anything still in a cookie is
+       carried across once, below, and the cookie is then thrown away.     */
     var K_IDS = 'mt_ids', K_LAST = 'mt_last', K_SOUND = 'mt_sound', K_PLAYER = 'mt_p_';
     var K_MODE = 'mt_play';
     var SCHEMA = 3;
 
-    function setCookie(key, value, seconds) {
-        document.cookie = key + '=' + encodeURIComponent(value) +
-            ';max-age=' + (seconds === undefined ? YEAR * 2 : seconds) +
-            ';path=/;SameSite=Lax';
+    // Safari in private mode, and a few locked-down setups, throw on write.
+    var canStore = (function () {
+        try {
+            localStorage.setItem('mt_test', '1');
+            var ok = localStorage.getItem('mt_test') === '1';
+            localStorage.removeItem('mt_test');
+            return ok;
+        } catch (e) { return false; }
+    })();
+
+    // when the real thing is unavailable the game still plays, it just forgets
+    var memory = {};
+
+    function save(key, value) {
+        memory[key] = value;
+        if (!canStore) return;
+        try { localStorage.setItem(key, value); }
+        catch (e) { canStore = false; }          // quota gone, or blocked mid-session
     }
-    function getCookie(key) {
+    function load(key) {
+        if (canStore) {
+            try {
+                var v = localStorage.getItem(key);
+                if (v !== null) return v;
+            } catch (e) { canStore = false; }
+        }
+        return (key in memory) ? memory[key] : null;
+    }
+    function drop(key) {
+        delete memory[key];
+        if (!canStore) return;
+        try { localStorage.removeItem(key); } catch (e) { /* nothing to undo */ }
+    }
+
+    /* ---------- carrying the old cookie profiles across ----------
+       Runs once: if localStorage has no player index but a cookie does, every
+       mt_ key is copied over and the cookies are cleared. A player who has
+       already been moved, or who is new, costs one lookup and nothing else. */
+    function readCookie(key) {
         var parts = document.cookie ? document.cookie.split('; ') : [];
         for (var i = 0; i < parts.length; i++) {
             var eq = parts[i].indexOf('=');
@@ -585,13 +620,25 @@
         }
         return null;
     }
-    function dropCookie(key) { setCookie(key, '', 0); }
-    function cookiesWork() {
-        setCookie('mt_test', '1', 60);
-        var ok = getCookie('mt_test') === '1';
-        dropCookie('mt_test');
-        return ok;
+    function eraseCookie(key) {
+        document.cookie = key + '=;max-age=0;path=/;SameSite=Lax';
     }
+    function importCookies() {
+        if (!canStore) return;                   // no destination, so leave the cookies alone
+        if (load(K_IDS) !== null) return;        // localStorage already owns the profiles
+        var ids = readCookie(K_IDS);
+        if (!ids) return;                        // nothing was ever stored in a cookie
+
+        var keys = [K_IDS, K_LAST, K_SOUND, K_MODE];
+        ids.split(',').filter(Boolean).forEach(function (id) { keys.push(K_PLAYER + id); });
+        keys.forEach(function (key) {
+            var value = readCookie(key);
+            if (value === null) return;
+            save(key, value);
+            eraseCookie(key);
+        });
+    }
+    importCookies();
 
     /* ================== facts and mastery ==================
        2×1 through 9×9 — 72 facts. mastery is one 0-5 digit per fact,
@@ -613,13 +660,13 @@
     }
 
     function readIds() {
-        var raw = getCookie(K_IDS);
+        var raw = load(K_IDS);
         return raw ? raw.split(',').filter(Boolean) : [];
     }
-    function writeIds(ids) { setCookie(K_IDS, ids.join(',')); }
+    function writeIds(ids) { save(K_IDS, ids.join(',')); }
 
     function loadPlayer(id) {
-        var raw = getCookie(K_PLAYER + id), d;
+        var raw = load(K_PLAYER + id), d;
         if (!raw) return null;
         try { d = JSON.parse(raw); } catch (e) { return null; }
         var current = d.v === SCHEMA;
@@ -640,7 +687,7 @@
         };
     }
     function savePlayer(p) {
-        setCookie(K_PLAYER + p.id, JSON.stringify({
+        save(K_PLAYER + p.id, JSON.stringify({
             v: SCHEMA, n: p.name, a: p.face, m: p.mastery, s: p.stars,
             r: p.rounds, c: p.correct, t: p.asked, bs: p.bestScore, bt: p.bestTime,
             h: p.history.slice(0, HISTORY_MAX)
@@ -655,13 +702,14 @@
         return out;
     }
     function deletePlayer(id) {
-        dropCookie(K_PLAYER + id);
+        drop(K_PLAYER + id);
         writeIds(readIds().filter(function (x) { return x !== id; }));
-        if (getCookie(K_LAST) === id) dropCookie(K_LAST);
+        if (load(K_LAST) === id) drop(K_LAST);
     }
 
-    // Newest first, capped so one profile always fits in its own cookie.
-    var HISTORY_MAX = 10;
+    // Newest first. localStorage has room to spare, so the cap is about how
+    // much history stays interesting, not about how much fits.
+    var HISTORY_MAX = 25, HISTORY_SHOWN = 12;
 
     function addHistory(p, entry) {
         p.history.unshift([entry.mode, entry.misses, entry.time, entry.score, entry.stars]);
@@ -672,7 +720,7 @@
     var AVATARS = ['🐱','🐶','🦊','🐼','🐨','🦁','🐯','🐸','🐵','🦄','🐧','🐢','🐝','🦖'];
 
     /* ================== sound ================== */
-    var audio = null, soundOn = getCookie(K_SOUND) !== 'off';
+    var audio = null, soundOn = load(K_SOUND) !== 'off';
 
     function beep(freq, dur, delay, type) {
         if (!soundOn) return;
@@ -807,7 +855,7 @@
     function choosePlayer(id) {
         me = loadPlayer(id);
         if (!me) { renderPlayers(); return; }
-        setCookie(K_LAST, id);
+        save(K_LAST, id);
         renderMenu();
         showScreen('menu');
     }
@@ -857,7 +905,7 @@
         me.history.forEach(function (h) { best = Math.max(best, h[3]); });
 
         var html = '<tr><th>#</th><th>Mode</th><th>Slips</th><th>Time</th><th>Score</th><th>Stars</th></tr>';
-        me.history.forEach(function (h, i) {
+        me.history.slice(0, HISTORY_SHOWN).forEach(function (h, i) {
             var mode = h[0], misses = h[1], time = h[2], score = h[3], stars = h[4];
             html += '<tr' + (score === best ? ' class="best"' : '') + '>' +
                 '<td>' + (me.history.length - i) + '</td>' +
@@ -868,6 +916,11 @@
                 '<td class="stars">' + (new Array(stars + 1).join('⭐') || '—') + '</td>' +
                 '</tr>';
         });
+        var older = me.history.length - HISTORY_SHOWN;
+        if (older > 0) {
+            html += '<tr><td class="more" colspan="6">' +
+                    older + ' older ' + (older === 1 ? 'round' : 'rounds') + ' still kept</td></tr>';
+        }
         table.innerHTML = html;
     }
 
@@ -1118,7 +1171,7 @@
     var HARD_BUBBLES = 3;
     var EASY_OPTIONS = 5;
     var game = null;
-    var playMode = getCookie(K_MODE) === 'hard' ? 'hard' : 'easy';
+    var playMode = load(K_MODE) === 'hard' ? 'hard' : 'easy';
 
     function pickFact(table) {
         var pool = [];
@@ -1730,7 +1783,7 @@
     $('switch-player').addEventListener('click', function () { renderPlayers(); showScreen('players'); });
     $('sound-toggle').addEventListener('click', function () {
         soundOn = !soundOn;
-        setCookie(K_SOUND, soundOn ? 'on' : 'off');
+        save(K_SOUND, soundOn ? 'on' : 'off');
         $('sound-toggle').textContent = soundOn ? '🔊' : '🔇';
         if (soundOn) soundHit();
     });
@@ -1753,7 +1806,7 @@
     Array.prototype.forEach.call($('play-mode').children, function (btn) {
         btn.addEventListener('click', function () {
             playMode = btn.dataset.play;
-            setCookie(K_MODE, playMode);
+            save(K_MODE, playMode);
             renderPlayMode();
         });
     });
@@ -1790,12 +1843,12 @@
     });
 
     /* ================== boot ================== */
-    if (!cookiesWork()) $('cookie-warning').hidden = false;
+    if (!canStore) $('storage-warning').hidden = false;
     renderAvatarPicker();
     renderTablePickers();
     renderPlayers();
 
-    var last = getCookie(K_LAST);
+    var last = load(K_LAST);
     if (last && loadPlayer(last)) choosePlayer(last);
     else if (!readIds().length) openNewPlayer();
 })();
