@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Kangaroo — QAM's Learning Materials</title>
+    <link rel="stylesheet" href="style.css?v=2">
+    <script src="theme.js?v=2"></script>
+</head>
+<body>
+    <header>
+        <h1>Math Kangaroo</h1>
+        <p class="tagline">International Math Kangaroo past papers, 2009–2024, organized by grade level.</p>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="ml.html">Machine Learning</a>
+            <a href="math.html">Math</a>
+            <a href="kangaroo.html" aria-current="page">Kangaroo</a>
+            <a href="drone.html">Drone</a>
+            <a href="game.html">Game</a>
+            <button type="button" id="theme-toggle" class="theme-btn">🖥️</button>
+        </nav>
+    </header>
+
+    <h2>Past Papers by Grade</h2>
+    <p>
+        All papers include both <strong>Questions</strong> and <strong>Answer Keys</strong>.
+        Papers are organized by grade level (1–12) and year (2009–2024).
+        Each folder contains question papers and corresponding answer keys for complete exam practice.
+    </p>
+
+    <div class="grades-grid">
+        <div class="grade-card">
+            <h3>Grade 1–2 (Felix)</h3>
+            <p>22 papers (2014–2024)</p>
+            <a href="kangaroo-papers/Grade-1-2/" class="btn">View Papers</a>
+        </div>
+
+        <div class="grade-card">
+            <h3>Grade 3–4 (Ecolier)</h3>
+            <p>32 papers (2009–2024)</p>
+            <a href="kangaroo-papers/Grade-3-4/" class="btn">View Papers</a>
+        </div>
+
+        <div class="grade-card">
+            <h3>Grade 5–6 (Benjamin)</h3>
+            <p>32 papers (2009–2024)</p>
+            <a href="kangaroo-papers/Grade-5-6/" class="btn">View Papers</a>
+        </div>
+
+        <div class="grade-card">
+            <h3>Grade 7–8 (Kadett)</h3>
+            <p>32 papers (2009–2024)</p>
+            <a href="kangaroo-papers/Grade-7-8/" class="btn">View Papers</a>
+        </div>
+
+        <div class="grade-card">
+            <h3>Grade 9–10 (Junior)</h3>
+            <p>32 papers (2009–2024)</p>
+            <a href="kangaroo-papers/Grade-9-10/" class="btn">View Papers</a>
+        </div>
+
+        <div class="grade-card">
+            <h3>Grade 11–12 (Student)</h3>
+            <p>32 papers (2009–2024)</p>
+            <a href="kangaroo-papers/Grade-11-12/" class="btn">View Papers</a>
+        </div>
+    </div>
+
+    <h2>How to Use</h2>
+    <ol>
+        <li><strong>Pick a grade level</strong> — Choose the level that matches your needs (or higher for a challenge)</li>
+        <li><strong>Select a year</strong> — Start with older papers and work forward, or pick your target year</li>
+        <li><strong>Practice questions</strong> — Work through the questions under time pressure for authentic practice</li>
+        <li><strong>Check answers</strong> — Review the answer key to see which questions you missed and why</li>
+        <li><strong>Track progress</strong> — Keep a record of your scores to monitor improvement over time</li>
+    </ol>
+
+    <style>
+        .grades-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .grade-card {
+            padding: 1.5rem;
+            border: 1px solid var(--border-color, #ddd);
+            border-radius: 8px;
+            background: var(--card-bg, #f9f9f9);
+            transition: all 0.2s ease;
+        }
+
+        .grade-card:hover {
+            border-color: var(--accent-color, #0066cc);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .grade-card h3 {
+            margin-top: 0;
+            color: var(--heading-color, #333);
+        }
+
+        .grade-card p {
+            color: var(--text-muted, #666);
+            margin: 0.5rem 0 1rem 0;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: var(--btn-bg, #0066cc);
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background 0.2s ease;
+        }
+
+        .btn:hover {
+            background: var(--btn-hover, #0052a3);
+        }
+
+        ol {
+            margin: 1.5rem 0;
+            padding-left: 2rem;
+        }
+
+        ol li {
+            margin: 0.75rem 0;
+            line-height: 1.6;
+        }
+    </style>
+
+    <footer>
+        Built and maintained by Liangyu Chen.
+    </footer>
+</body>
+</html>
