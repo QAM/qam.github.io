@@ -12,21 +12,22 @@
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f5f5;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
             padding: 20px;
-            line-height: 1.6;
         }
         .container {
-            max-width: 1000px;
+            max-width: 800px;
             margin: 0 auto;
             background: white;
             padding: 40px;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
         }
         h1 {
             color: #333;
             margin-bottom: 10px;
+            font-size: 28px;
         }
         .subtitle {
             color: #666;
@@ -36,42 +37,65 @@
         .back-link {
             display: inline-block;
             margin-bottom: 30px;
-            color: #2563eb;
+            color: #667eea;
             text-decoration: none;
             font-size: 14px;
+            font-weight: 500;
         }
         .back-link:hover {
             text-decoration: underline;
         }
-        .files-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 12px;
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
         }
-        .file-item {
-            border: 1px solid #ddd;
-            border-radius: 4px;
+        thead {
+            background: #f5f5f5;
+            border-bottom: 2px solid #667eea;
+        }
+        th {
             padding: 12px;
-            text-decoration: none;
+            text-align: left;
+            font-weight: 600;
             color: #333;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .file-item:hover {
-            border-color: #2563eb;
-            background: #f0f7ff;
-            color: #2563eb;
-        }
-        .pdf-icon {
-            font-size: 24px;
-            min-width: 24px;
-        }
-        .file-name {
-            flex: 1;
-            word-break: break-word;
             font-size: 14px;
+        }
+        td {
+            padding: 14px 12px;
+            border-bottom: 1px solid #eee;
+        }
+        tr:hover {
+            background: #f9f9f9;
+        }
+        .year {
+            font-weight: 600;
+            color: #667eea;
+            width: 80px;
+        }
+        .papers {
+            text-align: center;
+        }
+        .pdf-link {
+            display: inline-block;
+            padding: 6px 12px;
+            background: #f0f4ff;
+            color: #667eea;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: 1px solid #e0e7ff;
+        }
+        .pdf-link:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        .unavailable {
+            color: #ccc;
+            font-size: 12px;
         }
     </style>
 </head>
@@ -80,30 +104,73 @@
         <a href="../" class="back-link">← Back to Grades</a>
         <h1>🦘 </h1>
         <p class="subtitle">Math Kangaroo Past Papers • 2009–2024</p>
-        <div class="files-list">
-            <a href="Kangaroo_Math_Answer_Key_for_Grade_1-2_2014.pdf" class="file-item"><span class="pdf-icon">📄</span><span class="file-name">Kangaroo_Math_Answer_Key_for_Grade_1-2_2014</span></a>
-            <a href="Kangaroo_Math_Answer_Key_for_Grade_1-2_2015.pdf" class="file-item"><span class="pdf-icon">📄</span><span class="file-name">Kangaroo_Math_Answer_Key_for_Grade_1-2_2015</span></a>
-            <a href="Kangaroo_Math_Answer_Key_for_Grade_1-2_2016.pdf" class="file-item"><span class="pdf-icon">📄</span><span class="file-name">Kangaroo_Math_Answer_Key_for_Grade_1-2_2016</span></a>
-            <a href="Kangaroo_Math_Answer_Key_for_Grade_1-2_2017.pdf" class="file-item"><span class="pdf-icon">📄</span><span class="file-name">Kangaroo_Math_Answer_Key_for_Grade_1-2_2017</span></a>
-            <a href="Kangaroo_Math_Answer_Key_for_Grade_1-2_2018.pdf" class="file-item"><span class="pdf-icon">📄</span><span class="file-name">Kangaroo_Math_Answer_Key_for_Grade_1-2_2018</span></a>
-            <a href="Kangaroo_Math_Answer_Key_for_Grade_1-2_2019.pdf" class="file-item"><span class="pdf-icon">📄</span><span class="file-name">Kangaroo_Math_Answer_Key_for_Grade_1-2_2019</span></a>
-            <a href="Kangaroo_Math_Answer_Key_for_Grade_1-2_2020.pdf" class="file-item"><span class="pdf-icon">📄</span><span class="file-name">Kangaroo_Math_Answer_Key_for_Grade_1-2_2020</span></a>
-            <a href="Kangaroo_Math_Answer_Key_for_Grade_1-2_2021.pdf" class="file-item"><span class="pdf-icon">📄</span><span class="file-name">Kangaroo_Math_Answer_Key_for_Grade_1-2_2021</span></a>
-            <a href="Kangaroo_Math_Answer_Key_for_Grade_1-2_2022.pdf" class="file-item"><span class="pdf-icon">📄</span><span class="file-name">Kangaroo_Math_Answer_Key_for_Grade_1-2_2022</span></a>
-            <a href="Kangaroo_Math_Answer_Key_for_Grade_1-2_2023.pdf" class="file-item"><span class="pdf-icon">📄</span><span class="file-name">Kangaroo_Math_Answer_Key_for_Grade_1-2_2023</span></a>
-            <a href="Kangaroo_Math_Answer_Key_for_Grade_1-2_2024.pdf" class="file-item"><span class="pdf-icon">📄</span><span class="file-name">Kangaroo_Math_Answer_Key_for_Grade_1-2_2024</span></a>
-            <a href="Kangaroo_Math_Questions_2014_for_Grade_1-2.pdf" class="file-item"><span class="pdf-icon">📄</span><span class="file-name">Kangaroo_Math_Questions_2014_for_Grade_1-2</span></a>
-            <a href="Kangaroo_Math_Questions_2015_for_Grade_1-2.pdf" class="file-item"><span class="pdf-icon">📄</span><span class="file-name">Kangaroo_Math_Questions_2015_for_Grade_1-2</span></a>
-            <a href="Kangaroo_Math_Questions_2016_for_Grade_1-2.pdf" class="file-item"><span class="pdf-icon">📄</span><span class="file-name">Kangaroo_Math_Questions_2016_for_Grade_1-2</span></a>
-            <a href="Kangaroo_Math_Questions_2017_for_Grade_1-2.pdf" class="file-item"><span class="pdf-icon">📄</span><span class="file-name">Kangaroo_Math_Questions_2017_for_Grade_1-2</span></a>
-            <a href="Kangaroo_Math_Questions_2018_for_Grade_1-2.pdf" class="file-item"><span class="pdf-icon">📄</span><span class="file-name">Kangaroo_Math_Questions_2018_for_Grade_1-2</span></a>
-            <a href="Kangaroo_Math_Questions_2019_for_Grade_1-2.pdf" class="file-item"><span class="pdf-icon">📄</span><span class="file-name">Kangaroo_Math_Questions_2019_for_Grade_1-2</span></a>
-            <a href="Kangaroo_Math_Questions_2020_for_Grade_1-2.pdf" class="file-item"><span class="pdf-icon">📄</span><span class="file-name">Kangaroo_Math_Questions_2020_for_Grade_1-2</span></a>
-            <a href="Kangaroo_Math_Questions_2021_for_Grade_1-2.pdf" class="file-item"><span class="pdf-icon">📄</span><span class="file-name">Kangaroo_Math_Questions_2021_for_Grade_1-2</span></a>
-            <a href="Kangaroo_Math_Questions_2022_for_Grade_1-2.pdf" class="file-item"><span class="pdf-icon">📄</span><span class="file-name">Kangaroo_Math_Questions_2022_for_Grade_1-2</span></a>
-            <a href="Kangaroo_Math_Questions_2023_for_Grade_1-2.pdf" class="file-item"><span class="pdf-icon">📄</span><span class="file-name">Kangaroo_Math_Questions_2023_for_Grade_1-2</span></a>
-            <a href="Kangaroo_Math_Questions_2024_for_Grade_1-2.pdf" class="file-item"><span class="pdf-icon">📄</span><span class="file-name">Kangaroo_Math_Questions_2024_for_Grade_1-2</span></a>
-        </div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Year</th>
+                    <th>Questions</th>
+                    <th>Answer Key</th>
+                </tr>
+            </thead>
+            <tbody>
+        <tr>
+            <td class="year">2014</td>
+            <td class="papers"><a href="Kangaroo_Math_Questions_2014_for_Grade_1-2.pdf" class="pdf-link">📄 Questions</a></td>
+            <td class="papers"><a href="Kangaroo_Math_Answer_Key_for_Grade_1-2_2014.pdf" class="pdf-link">📄 Answers</a></td>
+        </tr>
+        <tr>
+            <td class="year">2015</td>
+            <td class="papers"><a href="Kangaroo_Math_Questions_2015_for_Grade_1-2.pdf" class="pdf-link">📄 Questions</a></td>
+            <td class="papers"><a href="Kangaroo_Math_Answer_Key_for_Grade_1-2_2015.pdf" class="pdf-link">📄 Answers</a></td>
+        </tr>
+        <tr>
+            <td class="year">2016</td>
+            <td class="papers"><a href="Kangaroo_Math_Questions_2016_for_Grade_1-2.pdf" class="pdf-link">📄 Questions</a></td>
+            <td class="papers"><a href="Kangaroo_Math_Answer_Key_for_Grade_1-2_2016.pdf" class="pdf-link">📄 Answers</a></td>
+        </tr>
+        <tr>
+            <td class="year">2017</td>
+            <td class="papers"><a href="Kangaroo_Math_Questions_2017_for_Grade_1-2.pdf" class="pdf-link">📄 Questions</a></td>
+            <td class="papers"><a href="Kangaroo_Math_Answer_Key_for_Grade_1-2_2017.pdf" class="pdf-link">📄 Answers</a></td>
+        </tr>
+        <tr>
+            <td class="year">2018</td>
+            <td class="papers"><a href="Kangaroo_Math_Questions_2018_for_Grade_1-2.pdf" class="pdf-link">📄 Questions</a></td>
+            <td class="papers"><a href="Kangaroo_Math_Answer_Key_for_Grade_1-2_2018.pdf" class="pdf-link">📄 Answers</a></td>
+        </tr>
+        <tr>
+            <td class="year">2019</td>
+            <td class="papers"><a href="Kangaroo_Math_Questions_2019_for_Grade_1-2.pdf" class="pdf-link">📄 Questions</a></td>
+            <td class="papers"><a href="Kangaroo_Math_Answer_Key_for_Grade_1-2_2019.pdf" class="pdf-link">📄 Answers</a></td>
+        </tr>
+        <tr>
+            <td class="year">2020</td>
+            <td class="papers"><a href="Kangaroo_Math_Questions_2020_for_Grade_1-2.pdf" class="pdf-link">📄 Questions</a></td>
+            <td class="papers"><a href="Kangaroo_Math_Answer_Key_for_Grade_1-2_2020.pdf" class="pdf-link">📄 Answers</a></td>
+        </tr>
+        <tr>
+            <td class="year">2021</td>
+            <td class="papers"><a href="Kangaroo_Math_Questions_2021_for_Grade_1-2.pdf" class="pdf-link">📄 Questions</a></td>
+            <td class="papers"><a href="Kangaroo_Math_Answer_Key_for_Grade_1-2_2021.pdf" class="pdf-link">📄 Answers</a></td>
+        </tr>
+        <tr>
+            <td class="year">2022</td>
+            <td class="papers"><a href="Kangaroo_Math_Questions_2022_for_Grade_1-2.pdf" class="pdf-link">📄 Questions</a></td>
+            <td class="papers"><a href="Kangaroo_Math_Answer_Key_for_Grade_1-2_2022.pdf" class="pdf-link">📄 Answers</a></td>
+        </tr>
+        <tr>
+            <td class="year">2023</td>
+            <td class="papers"><a href="Kangaroo_Math_Questions_2023_for_Grade_1-2.pdf" class="pdf-link">📄 Questions</a></td>
+            <td class="papers"><a href="Kangaroo_Math_Answer_Key_for_Grade_1-2_2023.pdf" class="pdf-link">📄 Answers</a></td>
+        </tr>
+        <tr>
+            <td class="year">2024</td>
+            <td class="papers"><a href="Kangaroo_Math_Questions_2024_for_Grade_1-2.pdf" class="pdf-link">📄 Questions</a></td>
+            <td class="papers"><a href="Kangaroo_Math_Answer_Key_for_Grade_1-2_2024.pdf" class="pdf-link">📄 Answers</a></td>
+        </tr>
+            </tbody>
+        </table>
     </div>
 </body>
 </html>
